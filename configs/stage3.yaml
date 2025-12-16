@@ -1,0 +1,77 @@
+# VoxFormer Stage 3 Training Configuration
+# Focus: Higher CTC weight for better encoder + simpler training
+# Strategy: Since CTC works well, rely more on CTC branch
+# Target: <20% WER on CTC decoding
+
+# Model Architecture (same as Stage 2)
+model:
+  vocab_size: 2000
+  d_model: 512
+  encoder_num_heads: 8
+  encoder_num_blocks: 3
+  encoder_layers_per_block: 2
+  decoder_num_heads: 8
+  decoder_num_layers: 4
+  d_ff: 2048
+  kernel_size: 31
+  dropout: 0.1
+  wavlm_model_name: "microsoft/wavlm-base"
+  freeze_wavlm: true
+  unfreeze_top_k: 3  # Keep WavLM top 3 unfrozen
+  ctc_weight: 0.7    # HIGH - focus on CTC (works well!)
+
+# Training Parameters
+training:
+  # Optimization
+  learning_rate: 2.0e-5  # Moderate LR for continued fine-tuning
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  warmup_steps: 500
+
+  # Batch size
+  batch_size: 8
+  gradient_accumulation_steps: 4
+
+  # Duration
+  num_epochs: 10
+
+  # Mixed precision
+  mixed_precision: true
+
+  # Checkpointing
+  checkpoint_dir: "checkpoints/stage3"
+  save_interval: 2000  # Less frequent to save disk space
+  keep_last_n: 2       # Only keep 2 most recent step checkpoints
+  resume_from: "checkpoints/stage2/best.pt"
+
+  # Logging
+  log_interval: 50
+  eval_interval: 500
+
+  # Wandb
+  wandb_project: null
+  wandb_run_name: "stage3-ctc-focus"
+
+# Data Configuration
+data:
+  train_data: "/root/voxformer/data/LibriSpeech/train-clean-100"
+  eval_data: "/root/voxformer/data/LibriSpeech/dev-clean"
+  data_format: "librispeech"
+  sample_rate: 16000
+  max_audio_len: 30.0
+  max_text_len: 256
+  num_workers: 4
+
+# Loss Configuration - CTC focused
+loss:
+  ctc_weight: 0.7      # HIGH - CTC works, focus here
+  ce_weight: 0.3       # Lower decoder weight
+  label_smoothing: 0.1
+  warmup_ctc_weight: 0.7
+  warmup_ce_weight: 0.3
+  warmup_steps: 0
+
+# Tokenizer
+tokenizer:
+  vocab_size: 2000
+  model_path: "tokenizer/tokenizer.model"

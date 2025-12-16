@@ -1,0 +1,10 @@
+export { SlideWrapper } from "./SlideWrapper";
+export { TitleSlide } from "./TitleSlide";
+export { GoalSlide } from "./GoalSlide";
+export { ArchitectureSlide } from "./ArchitectureSlide";
+export { STTSlide } from "./STTSlide";
+export { RAGSlide } from "./RAGSlide";
+export { TTSLipsyncSlide } from "./TTSLipsyncSlide";
+export { BlenderMCPSlide } from "./BlenderMCPSlide";
+export { UseCasesSlide } from "./UseCasesSlide";
+export { ConclusionSlide } from "./ConclusionSlide";

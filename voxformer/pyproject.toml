@@ -1,0 +1,105 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voxformer"
+version = "1.0.0"
+description = "VoxFormer: Elite Speech-to-Text Transformer for Gaming AI"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "VoxFormer Team", email = "voxformer@example.com"}
+]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    # Core ML
+    "torch>=2.1.0",
+    "torchaudio>=2.1.0",
+    "transformers>=4.35.0",
+
+    # Audio processing
+    "librosa>=0.10.0",
+    "soundfile>=0.12.0",
+
+    # Data & tokenization
+    "datasets>=2.14.0",
+    "sentencepiece>=0.1.99",
+    "tokenizers>=0.15.0",
+
+    # Training utilities
+    "wandb>=0.16.0",
+    "tensorboard>=2.15.0",
+    "accelerate>=0.25.0",
+
+    # Evaluation
+    "jiwer>=3.0.0",  # WER calculation
+    "editdistance>=0.6.0",
+
+    # Configuration
+    "pyyaml>=6.0",
+    "omegaconf>=2.3.0",
+
+    # Utilities
+    "tqdm>=4.66.0",
+    "numpy>=1.24.0",
+    "einops>=0.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+]
+export = [
+    "onnx>=1.15.0",
+    "onnxruntime>=1.16.0",
+    "onnxruntime-gpu>=1.16.0",
+]
+serve = [
+    "grpcio>=1.60.0",
+    "grpcio-tools>=1.60.0",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+]
+
+[project.scripts]
+voxformer-train = "voxformer.scripts.train:main"
+voxformer-eval = "voxformer.scripts.evaluate:main"
+voxformer-export = "voxformer.scripts.export:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src --cov-report=term-missing"

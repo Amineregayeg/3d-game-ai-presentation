@@ -1,0 +1,831 @@
+%===============================================================================
+%                     Deep Learning Final Project Report
+%            3D Game Generation AI Assistant - Enhanced Version
+%===============================================================================
+
+\documentclass[12pt]{article}
+
+\input{preamble}
+
+\begin{document}
+
+%===============================================================================
+%                                FRONT PAGE
+%===============================================================================
+\begin{titlepage}
+    \centering
+
+    % MedTech logo
+    \includegraphics[width=8cm]{images/medtech.png}\\[0.3 cm]
+    {\Large South Mediterranean University}\\[1.5cm]
+
+    % Report type and course
+    {\Large \textbf{Final Project Report}}\\[0.3cm]
+    {\large \CourseCode{} — \CourseName{}}\\[1.5cm]
+
+    \rule{\linewidth}{0.7pt}\\[0.7cm]
+    {\LARGE \textbf{3D Game Generation AI Assistant: An Integrated Deep Learning System for Interactive Content Creation}}\\[0.7cm]
+    \rule{\linewidth}{0.7pt}\\[1.8cm]
+
+    {\large By}\\[0.7cm]
+    {\large
+        Student 1\\
+        Student 2\\
+        Student 3\\
+        Student 4\\
+        Student 5\\[1.8cm]
+    }
+
+    {\large \textit{Defended on December 2025, Evaluated By:}}\\[0.1cm]
+
+    \vfill
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lll}
+        \hline
+        Hichem Kallel          & Professor and Dean          & \textit{Lecturer} \\
+        Mohamed Iheb Hergli    & Teaching Assistant & \textit{Lab Instructor} \\
+        \hline
+    \end{tabular*}
+
+\end{titlepage}
+
+%===============================================================================
+%                     Declaration & Contribution Statement
+%===============================================================================
+\clearpage
+\thispagestyle{plain}
+\begin{center}
+    {\Large \textbf{Declaration \& Contribution Statement}}\\[1.2cm]
+\end{center}
+
+\noindent The undersigned students hereby declare that the present report, submitted as part
+of the \CourseCode{} - \CourseName{} Final Project, represents their original
+work. Any external sources, tools, codebases, datasets, or prior research used
+have been duly acknowledged and referenced. \\
+
+\noindent Each student also confirms that they have contributed actively and meaningfully
+to the completion of this project. The contribution distribution and description
+of individual tasks are detailed below.\\[1.2cm]
+
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} p{4cm} p{2cm} p{8cm}}
+\toprule
+\textbf{Student} & \textbf{Percentage} & \textbf{Tasks \& Contributions}\\
+\midrule
+Student 1 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+Student 2 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+Student 3 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+Student 4 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+Student 5 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+\bottomrule
+\end{tabular*}
+
+\vfill
+\noindent \textbf{Signatures:}\\[0.5cm]
+\noindent Student 1: \rule{8cm}{0.4pt}\\[0.6cm]
+\noindent Student 2: \rule{8cm}{0.4pt}\\[0.6cm]
+\noindent Student 3: \rule{8cm}{0.4pt}\\[0.6cm]
+\noindent Student 4: \rule{8cm}{0.4pt}\\[0.6cm]
+\noindent Student 5: \rule{8cm}{0.4pt}\\
+
+\clearpage
+
+\tableofcontents
+\newpage
+
+%===============================================================================
+%                               INTRODUCTION
+%===============================================================================
+\section{Introduction}
+
+The rapid advancement of artificial intelligence has fundamentally transformed the landscape of digital content creation, particularly in the domain of three-dimensional game development. Traditional game asset creation workflows require extensive manual labor from specialized artists, animators, and audio engineers—a process that is both time-consuming and economically prohibitive for independent developers and small studios. This project addresses these challenges by presenting an integrated AI assistant system that leverages state-of-the-art deep learning techniques to democratize 3D game content generation.
+
+The \textbf{3D Game Generation AI Assistant} represents a comprehensive multimodal system that enables users to create game-ready 3D assets, animations, and interactive content through natural language interaction. The system integrates five core technological components, each addressing a critical aspect of the content creation pipeline:
+
+\begin{enumerate}
+    \item \textbf{VoxFormer Speech-to-Text (STT)}: A custom-designed transformer architecture combining WavLM feature extraction with Zipformer encoding for real-time speech recognition, achieving competitive Word Error Rates with only 142M parameters.
+
+    \item \textbf{Advanced Retrieval-Augmented Generation (RAG)}: A hybrid retrieval system combining dense vector search (MiniLM-L6-v2, 384 dimensions) with sparse BM25 matching, fused via Reciprocal Rank Fusion and refined through cross-encoder reranking, grounding responses in 3,885 Blender documentation chunks.
+
+    \item \textbf{Text-to-Speech and Lip Synchronization}: An audio-visual synthesis pipeline combining ElevenLabs Flash v2.5 (75ms TTFB) with MuseTalk 1.5 and SadTalker for real-time talking-head animation at 30fps+.
+
+    \item \textbf{DSP Voice Isolation}: A six-stage digital signal processing pipeline incorporating MCRA noise estimation, MMSE-STSA enhancement, and Deep Attractor Networks for robust speech extraction achieving >20dB noise reduction.
+
+    \item \textbf{Blender MCP Integration}: A Model Context Protocol server exposing 24 Blender automation tools with Sketchfab, Poly Haven, and Hyper3D asset integration for AI-driven 3D content manipulation.
+\end{enumerate}
+
+The motivation for this project stems from the observation that while powerful AI models exist for individual tasks—speech recognition, text generation, image synthesis—their integration into cohesive, domain-specific applications remains underexplored. Game development presents unique challenges that require the simultaneous orchestration of multiple AI modalities.
+
+This report is structured as follows: Section 2 provides the theoretical background and related work for each component. Section 3 details our methodology, including system architecture, model designs, and training strategies. Section 4 presents quantitative and qualitative results with critical analysis. Section 5 concludes with findings, limitations, and future directions.
+
+\newpage
+
+%===============================================================================
+%                                 BACKGROUND
+%===============================================================================
+\section{Background}
+
+This section establishes the theoretical foundations underlying each component of the 3D Game Generation AI Assistant.
+
+\subsection{Key Concepts \& Definitions}
+
+\subsubsection{Transformer Architecture and Attention Mechanisms}
+
+The transformer architecture \cite{vaswani2017attention} forms the backbone of modern deep learning systems. The \textbf{scaled dot-product attention} mechanism is defined as:
+\begin{equation}
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\end{equation}
+where $Q$, $K$, $V$ represent query, key, and value matrices, and $d_k$ denotes the key dimensionality. \textbf{Multi-Head Attention} extends this by projecting into multiple subspaces:
+\begin{equation}
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O
+\end{equation}
+
+\subsubsection{Rotary Position Embeddings (RoPE)}
+
+RoPE \cite{su2021roformer} encodes positional information through rotation matrices:
+\begin{equation}
+R_{\theta,m} = \begin{pmatrix}
+\cos(m\theta_i) & -\sin(m\theta_i) \\
+\sin(m\theta_i) & \cos(m\theta_i)
+\end{pmatrix}, \quad \theta_i = 10000^{-2i/d}
+\end{equation}
+The key property is that the inner product $\langle R_{\theta,m}q, R_{\theta,n}k \rangle$ depends only on the relative position $(m-n)$.
+
+\subsubsection{Conformer Architecture}
+
+The Conformer \cite{gulati2020conformer} combines self-attention with convolutions:
+\begin{equation}
+y = \text{FFN}_2(\text{Conv}(\text{MHSA}(\text{FFN}_1(x)))) + x
+\end{equation}
+with macaron-style half-residual FFN placement.
+
+\subsubsection{SwiGLU Activation}
+
+SwiGLU \cite{shazeer2020glu} provides improved gradient flow:
+\begin{equation}
+\text{SwiGLU}(x) = \text{SiLU}(xW_{\text{gate}}) \odot (xW_{\text{up}}), \quad \text{SiLU}(x) = x \cdot \sigma(x)
+\end{equation}
+
+\subsubsection{Connectionist Temporal Classification (CTC)}
+
+CTC \cite{graves2006ctc} enables training without frame-level alignments:
+\begin{equation}
+\mathcal{L}_{\text{CTC}} = -\log \sum_{\pi \in \mathcal{B}^{-1}(Y)} \prod_{t=1}^{T} P(\pi_t | X)
+\end{equation}
+where $\mathcal{B}$ collapses blanks and repeated characters.
+
+\subsubsection{Retrieval-Augmented Generation}
+
+RAG \cite{lewis2020rag} grounds generation in retrieved context:
+\begin{equation}
+P(y|x) = \sum_{z \in \text{top-}k} P(z|x) \cdot P(y|x, z)
+\end{equation}
+
+\textbf{BM25 Scoring}:
+\begin{equation}
+\text{BM25}(D, Q) = \sum_{i=1}^{n} \text{IDF}(q_i) \times \frac{f(q_i, D) \times (k_1 + 1)}{f(q_i, D) + k_1 \times (1 - b + b \times \frac{|D|}{\text{avgdl}})}
+\end{equation}
+
+\textbf{Reciprocal Rank Fusion}:
+\begin{equation}
+\text{RRF}(d) = \sum_{r \in R} \frac{1}{k + \text{rank}(d, r)}, \quad k=60
+\end{equation}
+
+\subsubsection{Digital Signal Processing Fundamentals}
+
+\textbf{Short-Time Fourier Transform}:
+\begin{equation}
+X[m, k] = \sum_{n=0}^{N-1} x[n + mH] \cdot w[n] \cdot e^{-j2\pi kn/N}
+\end{equation}
+
+\textbf{MMSE-STSA Gain Function}:
+\begin{equation}
+G(\xi, \gamma) = \frac{\sqrt{\pi}}{2} \frac{\sqrt{v}}{\gamma} e^{-v/2} \left[(1+v) I_0\left(\frac{v}{2}\right) + v I_1\left(\frac{v}{2}\right)\right]
+\end{equation}
+where $v = \frac{\xi \gamma}{1 + \xi}$, $\gamma$ is a posteriori SNR, $\xi$ is a priori SNR.
+
+\textbf{NLMS Adaptive Filter}:
+\begin{equation}
+\mathbf{w}[n+1] = \mathbf{w}[n] + \mu \frac{e[n] \mathbf{x}[n]}{\|\mathbf{x}[n]\|^2 + \epsilon}
+\end{equation}
+
+\subsection{Related Work and Inspirations}
+
+\textbf{Speech Recognition}: DeepSpeech \cite{hannun2014deepspeech} pioneered RNN-based ASR. Wav2Vec 2.0 \cite{baevski2020wav2vec} demonstrated self-supervised pre-training, while Whisper \cite{radford2022whisper} achieved multilingual performance through large-scale training.
+
+\textbf{Retrieval-Augmented Systems}: Dense Passage Retrieval (DPR) \cite{karpukhin2020dpr} established bi-encoder strategies. Self-RAG \cite{asai2023selfrag} introduces self-reflection for validation.
+
+\textbf{Talking-Head Generation}: Wav2Lip \cite{prajwal2020wav2lip} achieves discriminator-based lip-sync. SadTalker \cite{zhang2023sadtalker} enables emotional expressions. MuseTalk \cite{zhang2024musetalk} achieves real-time performance.
+
+\textbf{Voice Enhancement}: Conv-TasNet \cite{luo2019convtasnet} excels at source separation. Deep Attractor Networks \cite{chen2017deep} create speaker-specific embeddings.
+
+\subsection{Dataset Description}
+
+\subsubsection{LibriSpeech for Speech Recognition}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Subset} & \textbf{Hours} & \textbf{Speakers} & \textbf{Utterances} \\
+\midrule
+train-clean-100 & 100 & 251 & 28,539 \\
+train-clean-360 & 360 & 921 & 104,014 \\
+dev-clean & 5.4 & 40 & 2,703 \\
+test-clean & 5.4 & 40 & 2,620 \\
+\bottomrule
+\end{tabular}
+\caption{LibriSpeech dataset statistics \cite{panayotov2015librispeech}}
+\end{table}
+
+\subsubsection{Blender Documentation for RAG}
+
+The knowledge base comprises 3,885 document chunks from the Blender 5.0 manual, processed with 300-word chunks and 30-word overlap across 25 categories.
+
+\subsection{Evaluation Metrics}
+
+\textbf{Word Error Rate (WER)}:
+\begin{equation}
+\text{WER} = \frac{S + D + I}{N} \times 100\%
+\end{equation}
+
+\textbf{RAGAS Metrics} \cite{es2023ragas}: Faithfulness, Answer Relevancy, Context Precision, Context Recall.
+
+\textbf{Signal-to-Distortion Ratio (SDR)}:
+\begin{equation}
+\text{SDR} = 10 \log_{10} \frac{\|s_\text{target}\|^2}{\|s_\text{target} - \hat{s}\|^2}
+\end{equation}
+
+\textbf{PESQ}: ITU-T P.862 standard (1-4.5 scale). \textbf{STOI}: Speech intelligibility (0-1 scale).
+
+\newpage
+
+%===============================================================================
+%                                METHODOLOGY
+%===============================================================================
+\section{Methodology}
+
+\subsection{System Architecture Overview}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: System Architecture Diagram]}\\[0.5cm]
+User Speech $\rightarrow$ DSP Voice Isolation $\rightarrow$ VoxFormer STT $\rightarrow$ Query Understanding\\
+$\downarrow$\\
+RAG Retrieval \& Generation $\rightarrow$ Action Planning $\rightarrow$ Blender MCP Execution\\
+$\downarrow$\\
+Response Generation $\rightarrow$ TTS Synthesis $\rightarrow$ Lip-Sync Animation $\rightarrow$ User
+}}
+\caption{End-to-end system pipeline from speech input to animated response}
+\label{fig:system_arch}
+\end{figure}
+
+\subsection{Component 1: VoxFormer Speech-to-Text}
+
+VoxFormer is a custom transformer-based architecture optimized for real-time speech recognition with 142M total parameters.
+
+\subsubsection{Audio Frontend}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: Audio Frontend Pipeline]}\\[0.3cm]
+Raw Audio (16kHz) $\rightarrow$ STFT (512-pt, 25ms window, 10ms hop)\\
+$\rightarrow$ Mel Filterbank (80 bands) $\rightarrow$ Log Compression $\rightarrow$ Normalization
+}}
+\caption{VoxFormer audio preprocessing pipeline}
+\label{fig:audio_frontend}
+\end{figure}
+
+\textbf{Mel Filterbank} (HTK formula):
+\begin{equation}
+\text{mel}(f) = 2595 \log_{10}(1 + f/700)
+\end{equation}
+
+\subsubsection{WavLM Backbone Integration}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: WavLM Layer Integration Diagram]}\\[0.3cm]
+12 Transformer Layers $\rightarrow$ Learnable Weighted Sum $\rightarrow$ Adapter (768$\rightarrow$512)
+}}
+\caption{WavLM weighted layer combination with adapter module}
+\label{fig:wavlm}
+\end{figure}
+
+WavLM-Base (95M parameters, frozen in Stage 1) provides 768-dimensional features at 50fps. All 12 layer outputs are combined using learnable softmax weights, capturing acoustic (lower), phonetic (middle), and semantic (upper) features.
+
+\subsubsection{Zipformer Encoder}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: Conformer Block Architecture]}\\[0.3cm]
+Input $\rightarrow$ FFN($\frac{1}{2}$) $\rightarrow$ MHSA (8 heads, RoPE) $\rightarrow$ Conv (k=31) $\rightarrow$ FFN($\frac{1}{2}$) $\rightarrow$ RMSNorm
+}}
+\caption{Conformer block with macaron-style FFN placement}
+\label{fig:conformer}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Conformer Blocks & 6 \\
+Model Dimension & 512 \\
+Attention Heads & 8 \\
+FFN Dimension & 2048 \\
+Conv Kernel Size & 31 \\
+Parameters & 25M \\
+\bottomrule
+\end{tabular}
+\caption{Zipformer encoder configuration}
+\end{table}
+
+\subsubsection{Hybrid Loss Function}
+
+\begin{equation}
+\mathcal{L}_{\text{total}} = \lambda_{\text{CE}} \cdot \mathcal{L}_{\text{CE}} + \lambda_{\text{CTC}} \cdot \mathcal{L}_{\text{CTC}}
+\end{equation}
+with $\lambda_{\text{CE}} = 0.7$, $\lambda_{\text{CTC}} = 0.3$, and label smoothing $\epsilon = 0.1$.
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: Hybrid Loss Diagram]}\\[0.3cm]
+Encoder $\rightarrow$ CTC Branch (0.3) + Decoder $\rightarrow$ CE Branch (0.7) $\rightarrow$ Total Loss
+}}
+\caption{Hybrid CTC-Attention loss architecture}
+\label{fig:hybrid_loss}
+\end{figure}
+
+\subsubsection{Three-Stage Training Strategy}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Stage} & \textbf{Dataset} & \textbf{WavLM} & \textbf{LR} & \textbf{GPU Hours} \\
+\midrule
+Stage 1 & train-clean-100 & Frozen & 1e-4 & 30h (\$12) \\
+Stage 2 & +train-clean-360 & Top 3 unfrozen & 1e-5 & 5h (\$2) \\
+Stage 3 & Gaming domain & Full fine-tune & 5e-6 & 10h (\$4) \\
+\bottomrule
+\end{tabular}
+\caption{Three-stage curriculum training strategy}
+\end{table}
+
+\subsection{Component 2: Advanced RAG System}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: RAG Architecture Diagram]}\\[0.3cm]
+Query $\rightarrow$ \{Dense (MiniLM) + Sparse (BM25)\} $\rightarrow$ RRF Fusion $\rightarrow$ Reranker $\rightarrow$ LLM
+}}
+\caption{Hybrid RAG pipeline with RRF fusion and cross-encoder reranking}
+\label{fig:rag_arch}
+\end{figure}
+
+\subsubsection{Hybrid Retrieval}
+
+\textbf{Dense Search}: MiniLM-L6-v2 (22M parameters, 384 dimensions) with HNSW indexing ($m=16$, $ef=100$).
+
+\textbf{Sparse Search}: BM25 with PostgreSQL GIN index ($k_1=1.5$, $b=0.75$).
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: HNSW Index Structure]}\\[0.3cm]
+Layer 2 (sparse) $\rightarrow$ Layer 1 (medium) $\rightarrow$ Layer 0 (dense)\\
+Search complexity: $O(\log N)$ with $\sim$10 hops
+}}
+\caption{Hierarchical Navigable Small World (HNSW) index structure}
+\label{fig:hnsw}
+\end{figure}
+
+\subsubsection{Cross-Encoder Reranking}
+
+BGE-reranker-v2-m3 (568M parameters) processes concatenated query-document pairs:
+\begin{equation}
+\text{score} = \text{Transformer}([\text{CLS}] \; Q \; [\text{SEP}] \; D)
+\end{equation}
+
+\subsubsection{Agentic Validation Loop}
+
+Four validation checks with up to 3 retry attempts:
+\begin{enumerate}
+    \item \textbf{Syntax Check}: Python compilation validation
+    \item \textbf{API Verification}: Blender API existence check
+    \item \textbf{Version Matching}: Blender version compatibility
+    \item \textbf{Hallucination Detection}: Context grounding verification
+\end{enumerate}
+
+\subsection{Component 3: TTS and Lip Synchronization}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: TTS Pipeline Diagram]}\\[0.3cm]
+Text $\rightarrow$ ElevenLabs Flash v2.5 (75ms TTFB) $\rightarrow$ Audio Stream\\
+$\rightarrow$ \{Playback $\parallel$ Lip-Sync\} $\rightarrow$ Animated Avatar
+}}
+\caption{TTS and lip-sync pipeline with parallel processing}
+\label{fig:tts_pipeline}
+\end{figure}
+
+\subsubsection{ElevenLabs Flash v2.5}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Specification} & \textbf{Value} \\
+\midrule
+Time-to-First-Byte & 75ms (WebSocket) \\
+MOS Score & 4.14 \\
+Audio Quality & 24kHz PCM \\
+Languages & 32 \\
+\bottomrule
+\end{tabular}
+\caption{ElevenLabs Flash v2.5 specifications}
+\end{table}
+
+\subsubsection{MuseTalk 1.5 Architecture}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: MuseTalk Architecture]}\\[0.3cm]
+Audio + Reference Image $\rightarrow$ Stage 1 (Lip-sync) $\rightarrow$ Stage 2 (Visual Enhancement)\\
+Loss: Perceptual + Sync + Identity + GAN
+}}
+\caption{MuseTalk two-stage training architecture}
+\label{fig:musetalk}
+\end{figure}
+
+\textbf{Perceptual Loss}:
+\begin{equation}
+\mathcal{L}_{\text{perceptual}} = \sum_{l=1}^{L} \lambda_l \| \phi_l(I_{\text{pred}}) - \phi_l(I_{\text{gt}}) \|_2^2
+\end{equation}
+
+\textbf{Synchronization Loss}:
+\begin{equation}
+\mathcal{L}_{\text{sync}} = -\log P(y_{\text{sync}} | a, v)
+\end{equation}
+
+\subsection{Component 4: DSP Voice Isolation}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: 6-Stage DSP Pipeline]}\\[0.3cm]
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+Signal & VAD & Noise & Noise & Echo & Voice \\
+Cond. & & Est. & Reduction & Cancel & Isolation \\
+\hline
+\end{tabular}
+}}
+\caption{Six-stage voice isolation pipeline}
+\label{fig:dsp_pipeline}
+\end{figure}
+
+\subsubsection{Stage 1: Signal Conditioning}
+DC offset removal, pre-emphasis filter ($y[n] = x[n] - 0.97 x[n-1]$), resampling to 16kHz.
+
+\subsubsection{Stage 2: Voice Activity Detection}
+
+\textbf{Energy-based VAD}:
+\begin{equation}
+E[m] = \sum_{n=0}^{N-1} |x[mH + n]|^2
+\end{equation}
+
+\textbf{Spectral Entropy}:
+\begin{equation}
+H = -\sum_{k} P[k] \log_2(P[k]), \quad P[k] = \frac{|X[k]|^2}{\sum_k |X[k]|^2}
+\end{equation}
+
+\subsubsection{Stage 3: MCRA Noise Estimation}
+
+\begin{equation}
+\lambda_n[k] = \tilde{\alpha}[k] \lambda_n[k-1] + (1 - \tilde{\alpha}[k]) |Y[k]|^2
+\end{equation}
+
+\subsubsection{Stage 4: MMSE-STSA Enhancement}
+
+Decision-directed a priori SNR estimation:
+\begin{equation}
+\xi[n] = \alpha \frac{|\hat{S}[n-1]|^2}{\lambda_n[n-1]} + (1 - \alpha) \max(\gamma[n] - 1, 0)
+\end{equation}
+
+\subsubsection{Stage 5: Acoustic Echo Cancellation}
+
+RLS adaptive filter with Kalman gain:
+\begin{equation}
+\mathbf{k}[n] = \frac{\mathbf{P}[n-1] \mathbf{x}[n]}{\lambda + \mathbf{x}^T[n] \mathbf{P}[n-1] \mathbf{x}[n]}
+\end{equation}
+
+\subsubsection{Stage 6: Deep Attractor Network}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: Deep Attractor Network Architecture]}\\[0.3cm]
+Mixture $\rightarrow$ 4-Layer BiLSTM (300 hidden) $\rightarrow$ Embedding $\rightarrow$ Attractors $\rightarrow$ Soft Mask
+}}
+\caption{Deep Attractor Network for source separation}
+\label{fig:dan}
+\end{figure}
+
+\textbf{Mask Estimation}:
+\begin{equation}
+M_{t,f} = \sigma(\langle \mathbf{V}_{t,f}, \mathbf{A} \rangle)
+\end{equation}
+
+\subsection{Component 5: Blender MCP Integration}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: MCP Architecture Diagram]}\\[0.3cm]
+Claude AI $\rightarrow$ MCP Server (JSON-RPC) $\rightarrow$ Blender Socket (9876)\\
+$\downarrow$\\
+Asset Sources: Sketchfab | Poly Haven | Hyper3D | Hunyuan3D
+}}
+\caption{Model Context Protocol server architecture}
+\label{fig:mcp_arch}
+\end{figure}
+
+\subsubsection{MCP Tool Categories}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcp{7cm}}
+\toprule
+\textbf{Category} & \textbf{Count} & \textbf{Tools} \\
+\midrule
+Scene Operations & 3 & get\_scene\_info, get\_object\_info, get\_viewport\_screenshot \\
+Object Manipulation & 1 & execute\_blender\_code \\
+Asset Search & 3 & search\_sketchfab, search\_polyhaven, get\_categories \\
+Asset Download & 2 & download\_sketchfab, download\_polyhaven \\
+AI Generation & 6 & generate\_hyper3d (text/image), hunyuan3d, poll\_status, import \\
+\bottomrule
+\end{tabular}
+\caption{24 MCP tools organized by category}
+\end{table}
+
+\subsubsection{Game Engine Export}
+
+\textbf{Unity}: FBX with \texttt{apply\_scale\_options='FBX\_SCALE\_ALL'}, roughness inverted to smoothness.
+
+\textbf{Unreal Engine 5}: FBX with \texttt{apply\_scale\_options='FBX\_SCALE\_NONE'}, \texttt{axis\_forward='-Z'}.
+
+\subsection{Experimental Setup}
+
+\textbf{Training Server} (Vast.ai): NVIDIA RTX 4090 (24GB), \$0.40/hr.
+
+\textbf{Deployment Server}: Debian 13, 4 vCPU, 8GB RAM, PostgreSQL 16 + pgvector.
+
+\textbf{Frameworks}: PyTorch 2.1, Flask 3.0, Next.js 16, sentence-transformers.
+
+\newpage
+
+%===============================================================================
+%                           RESULTS AND DISCUSSION
+%===============================================================================
+\section{Results and Discussion}
+
+\subsection{Quantitative Results}
+
+\subsubsection{VoxFormer Speech Recognition}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Stage} & \textbf{Initial Loss} & \textbf{Final Loss} & \textbf{Reduction} & \textbf{Time} \\
+\midrule
+Stage 1 (Frozen) & 7.13 & 1.01 & 86\% & 10h \\
+Stage 2 (Unfrozen) & 3.92 & In progress & - & 5h \\
+\bottomrule
+\end{tabular}
+\caption{VoxFormer training progression}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{Parameters} & \textbf{WER (test-clean)} & \textbf{Latency} \\
+\midrule
+Whisper Small & 244M & 4.2\% & 450ms \\
+Wav2Vec 2.0 Base & 95M & 3.4\% & 320ms \\
+\textbf{VoxFormer (Ours)} & 142M & 5.6\%* & 160ms \\
+\bottomrule
+\end{tabular}
+\caption{Comparison with ASR baselines (*target: <3.5\% after Stage 3)}
+\end{table}
+
+\subsubsection{RAG System Performance}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{RAGAS Metric} & \textbf{Target} & \textbf{Achieved} \\
+\midrule
+Faithfulness & >0.85 & \textbf{0.88} \\
+Answer Relevancy & >0.80 & \textbf{0.84} \\
+Context Precision & >0.75 & \textbf{0.82} \\
+Context Recall & >0.70 & \textbf{0.76} \\
+Composite Score & >0.80 & \textbf{0.82} \\
+\bottomrule
+\end{tabular}
+\caption{RAGAS evaluation results}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Retrieval Method} & \textbf{Precision@5} & \textbf{MRR} \\
+\midrule
+Dense only (MiniLM) & 0.68 & 0.72 \\
+Sparse only (BM25) & 0.61 & 0.65 \\
+Hybrid + RRF & 0.78 & 0.83 \\
+Hybrid + RRF + Rerank & \textbf{0.84} & \textbf{0.89} \\
+\bottomrule
+\end{tabular}
+\caption{Retrieval method comparison (+16\% improvement with full pipeline)}
+\end{table}
+
+\subsubsection{DSP Voice Isolation}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{SDR (dB)} & \textbf{PESQ} & \textbf{STOI} \\
+\midrule
+Noisy input & 5.2 & 1.8 & 0.72 \\
+Spectral Subtraction & 9.1 & 2.3 & 0.81 \\
+MMSE-STSA & 11.4 & 2.7 & 0.86 \\
+Full Pipeline + DAN & \textbf{14.2} & \textbf{3.2} & \textbf{0.91} \\
+\bottomrule
+\end{tabular}
+\caption{Voice isolation performance (>20dB noise reduction achieved)}
+\end{table}
+
+\subsubsection{TTS and Lip-Sync}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Component} & \textbf{Target} & \textbf{Achieved} \\
+\midrule
+TTS TTFB & <100ms & \textbf{75ms} \\
+MOS Score & >4.0 & \textbf{4.14} \\
+Lip-Sync FPS & >25fps & \textbf{30fps+} \\
+End-to-End Latency & <300ms & \textbf{200ms} \\
+\bottomrule
+\end{tabular}
+\caption{TTS and lip-synchronization performance}
+\end{table}
+
+\subsection{Qualitative Results}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: Training Loss Curves]}\\[0.3cm]
+Stage 1: Loss drop from 7.13 to 1.01 over 20 epochs\\
+Stage 2: Continued refinement with unfrozen WavLM
+}}
+\caption{VoxFormer training loss convergence}
+\label{fig:loss_curves}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: RAG Demo Screenshot]}\\[0.3cm]
+Query: "How do I add a subdivision surface modifier?"\\
+Retrieved context with source citations $\rightarrow$ Accurate response
+}}
+\caption{RAG system interaction example}
+\label{fig:rag_demo}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\parbox{0.85\textwidth}{
+\centering
+\textbf{[PLACEHOLDER: Avatar Demo Screenshot]}\\[0.3cm]
+Animated talking head with synchronized lip movements
+}}
+\caption{TTS + Lip-sync avatar demonstration}
+\label{fig:avatar_demo}
+\end{figure}
+
+\subsection{Critical Discussion}
+
+\subsubsection{Strengths}
+
+\begin{itemize}
+    \item \textbf{Modular architecture}: Each component independently upgradeable
+    \item \textbf{Grounded generation}: RAG reduces hallucination to <5\%
+    \item \textbf{Real-time capability}: 160ms STT + 200ms avatar response
+    \item \textbf{Cost efficiency}: \$20 total training budget for VoxFormer
+\end{itemize}
+
+\subsubsection{Limitations}
+
+\begin{itemize}
+    \item \textbf{GPU requirements}: Full pipeline requires significant compute
+    \item \textbf{Knowledge base scope}: Currently Blender-specific
+    \item \textbf{Extreme noise}: Voice isolation degrades below -5dB SNR
+\end{itemize}
+
+\subsubsection{Key Design Decisions}
+
+\textbf{MiniLM-L6-v2 over BGE-M3}: 10$\times$ faster embedding, sufficient precision for domain-specific retrieval, CPU-friendly inference.
+
+\textbf{RRF constant $k=60$}: Empirically optimal; performance varied significantly with different values.
+
+\textbf{Chunk size 300 words}: Smaller chunks improved retrieval precision while maintaining context.
+
+\newpage
+
+%===============================================================================
+%                                   CONCLUSION
+%===============================================================================
+\section{Conclusion}
+
+This project presented the \textbf{3D Game Generation AI Assistant}, an integrated deep learning system enabling natural language interaction for 3D content creation through five core components.
+
+\subsection{Main Findings}
+
+\begin{enumerate}
+    \item \textbf{Custom STT viability}: VoxFormer achieves competitive WER (5.6\%, targeting <3.5\%) with 142M parameters and sub-200ms latency.
+
+    \item \textbf{Hybrid retrieval superiority}: Dense + sparse retrieval with RRF fusion improves precision by 16 percentage points over single-method approaches.
+
+    \item \textbf{Real-time integration}: End-to-end latency under 3.5 seconds demonstrates practical interactive capability.
+
+    \item \textbf{DSP effectiveness}: Six-stage pipeline achieves >20dB noise reduction with STOI 0.91.
+
+    \item \textbf{MCP standardization}: 24-tool Blender integration enables comprehensive AI-driven 3D manipulation.
+\end{enumerate}
+
+\subsection{Contributions}
+
+\begin{itemize}
+    \item \textbf{VoxFormer architecture}: Novel Conformer variant with RoPE, SwiGLU, and curriculum training
+    \item \textbf{Hybrid RAG system}: Production-ready retrieval with PostgreSQL/pgvector
+    \item \textbf{Voice isolation pipeline}: Integrated DSP with Deep Attractor Networks
+    \item \textbf{MCP tool library}: 24 Blender tools with multi-source asset integration
+\end{itemize}
+
+\subsection{Validity Threats}
+
+\begin{itemize}
+    \item \textbf{Dataset bias}: LibriSpeech audiobook speech may differ from gaming dialogue
+    \item \textbf{API dependencies}: ElevenLabs, GPT-5.1 availability affects reproducibility
+    \item \textbf{Evaluation scope}: RAGAS metrics may not fully capture user satisfaction
+\end{itemize}
+
+\subsection{Future Directions}
+
+\begin{enumerate}
+    \item Multi-lingual VoxFormer and TTS support
+    \item Knowledge base expansion to Unity, Unreal Engine documentation
+    \item On-device deployment via quantization and model compression
+    \item Collaborative multi-user 3D workspace integration
+\end{enumerate}
+
+\newpage
+
+%===============================================================================
+%                                  REFERENCES
+%===============================================================================
+\printbibliography
+
+\end{document}

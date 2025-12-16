@@ -1,0 +1,44 @@
+{
+  "architecture": {
+    "total_params": 204777804,
+    "trainable_params": 110395868,
+    "tests_passed": 8,
+    "tests_total": 8,
+    "score": 100.0
+  },
+  "data_pipeline": {
+    "dataset_size": 2703,
+    "tests_passed": 5,
+    "tests_total": 5,
+    "score": 100.0
+  },
+  "loss_function": {
+    "tests_passed": 4,
+    "tests_total": 4,
+    "score": 100.0
+  },
+  "transcription": {
+    "ground_truth_sample": "a laudable regard for the honor of the first proselyte has countenanced the belief the hope the wish that the ebionites or at least the nazarenes were distinguished only by their obstinate perseverance in the practice of the mosaic rites",
+    "untrained_output": "anything well anything well anything well anything well anything well anything well anything well an",
+    "tests_passed": 2,
+    "tests_total": 2,
+    "score": 100.0
+  },
+  "performance": {
+    "avg_rtf_cpu": 0.16225333015124005,
+    "rtf_by_length": {
+      "1": 0.2102168401082357,
+      "3": 0.15491779645284018,
+      "5": 0.14813520113627116,
+      "10": 0.13574348290761312
+    },
+    "model_size_mb": 390.3079071044922,
+    "tests_passed": 2,
+    "tests_total": 2,
+    "score": 100.0
+  },
+  "issues": [],
+  "warnings": [],
+  "overall_score": 100.0,
+  "quality_level": "EXCELLENT"
+}

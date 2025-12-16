@@ -1,0 +1,46 @@
+# VoxFormer STT Manim Configuration
+# Based on 3b1b's manim configuration
+
+# Directories
+directories:
+  output: "./output"
+  assets: "./assets"
+
+# Camera settings for 4K production
+camera:
+  pixel_height: 2160
+  pixel_width: 3840
+  frame_rate: 30
+  background_color: "#0f172a"  # Slate-900 to match presentation theme
+
+# Quality presets
+quality:
+  fourk_quality:
+    pixel_height: 2160
+    pixel_width: 3840
+    frame_rate: 30
+
+  production_quality:
+    pixel_height: 1080
+    pixel_width: 1920
+    frame_rate: 30
+
+  preview_quality:
+    pixel_height: 480
+    pixel_width: 854
+    frame_rate: 15
+
+# Style settings
+style:
+  tex_template: "default"
+  font: "sans-serif"
+
+# Colors (matching project theme)
+colors:
+  primary: "#06b6d4"      # Cyan-500
+  secondary: "#a855f7"    # Purple-500
+  accent: "#10b981"       # Emerald-500
+  background: "#0f172a"   # Slate-900
+  surface: "#1e293b"      # Slate-800
+  text: "#f8fafc"         # Slate-50
+  muted: "#64748b"        # Slate-500

@@ -1,0 +1,91 @@
+# VoxFormer Stage 3 Training Configuration
+# Gaming domain adaptation
+# Target: <8% WER on gaming test set
+# Duration: ~10 GPU hours on A100
+
+# Model Architecture
+model:
+  vocab_size: 2000
+  d_model: 512
+  encoder_num_heads: 8
+  encoder_num_blocks: 3
+  encoder_layers_per_block: 2
+  decoder_num_heads: 8
+  decoder_num_layers: 4
+  d_ff: 2048
+  kernel_size: 31
+  dropout: 0.15  # Slightly higher dropout for domain adaptation
+  wavlm_model_name: "microsoft/wavlm-base"
+  freeze_wavlm: true
+  unfreeze_top_k: 3
+  ctc_weight: 0.3
+
+# Training Parameters
+training:
+  # Optimization (lower LR for domain adaptation)
+  learning_rate: 5.0e-6
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  warmup_steps: 500
+
+  # Batch size
+  batch_size: 8
+  gradient_accumulation_steps: 2
+
+  # Duration
+  num_epochs: 10
+
+  # Mixed precision
+  mixed_precision: true
+
+  # Checkpointing
+  checkpoint_dir: "checkpoints/stage3"
+  save_interval: 1000
+  resume_from: "checkpoints/stage2/best.pt"
+
+  # Logging
+  log_interval: 50
+  eval_interval: 500
+
+  # Wandb
+  wandb_project: "voxformer"
+  wandb_run_name: "stage3-gaming"
+
+# Data Configuration
+data:
+  # Gaming domain data (custom collected/augmented)
+  train_data: "/data/gaming/train.jsonl"
+  eval_data: "/data/gaming/eval.jsonl"
+  data_format: "manifest"
+  sample_rate: 16000
+  max_audio_len: 15.0  # Gaming commands are typically shorter
+  max_text_len: 64
+  num_workers: 4
+
+# Loss Configuration
+loss:
+  ctc_weight: 0.3
+  ce_weight: 0.7
+  label_smoothing: 0.1
+  warmup_ctc_weight: 0.3
+  warmup_ce_weight: 0.7
+  warmup_steps: 0
+
+# Tokenizer
+tokenizer:
+  vocab_size: 2000
+  model_path: "tokenizer/tokenizer.model"
+
+# Gaming-specific augmentation
+augmentation:
+  # Noise injection for robustness
+  add_noise: true
+  noise_snr_db: [10, 20, 30]  # Random SNR levels
+
+  # Speed perturbation
+  speed_perturb: true
+  speed_factors: [0.9, 1.0, 1.1]
+
+  # Volume perturbation
+  volume_perturb: true
+  volume_range: [-6, 6]  # dB range

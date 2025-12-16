@@ -1,0 +1,13 @@
+export { TechSlideWrapper } from "./TechSlideWrapper";
+export { VoxFormerTitleSlide } from "./VoxFormerTitleSlide";
+export { ArchitectureOverviewSlide } from "./ArchitectureOverviewSlide";
+export { WavLMIntegrationSlide } from "./WavLMIntegrationSlide";
+export { DSPPipelineSlide } from "./DSPPipelineSlide";
+export { ConformerBlockSlide } from "./ConformerBlockSlide";
+export { AttentionMechanismSlide } from "./AttentionMechanismSlide";
+export { HybridLossSlide } from "./HybridLossSlide";
+export { TrainingStrategySlide } from "./TrainingStrategySlide";
+export { StreamingInferenceSlide } from "./StreamingInferenceSlide";
+export { DeploymentSlide } from "./DeploymentSlide";
+export { ImplementationRoadmapSlide } from "./ImplementationRoadmapSlide";
+export { default as TrainingProgressSlide } from "./TrainingProgressSlide";

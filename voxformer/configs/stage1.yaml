@@ -1,0 +1,76 @@
+# VoxFormer Stage 1 Training Configuration
+# LibriSpeech training with WavLM frozen
+# Target: <5% WER on dev-clean
+# Duration: ~30 GPU hours on A100
+
+# Model Architecture
+model:
+  vocab_size: 2000
+  d_model: 512
+  encoder_num_heads: 8
+  encoder_num_blocks: 3
+  encoder_layers_per_block: 2
+  decoder_num_heads: 8
+  decoder_num_layers: 4
+  d_ff: 2048
+  kernel_size: 31
+  dropout: 0.1
+  wavlm_model_name: "microsoft/wavlm-base"
+  freeze_wavlm: true
+  unfreeze_top_k: 0
+  ctc_weight: 0.3
+
+# Training Parameters
+training:
+  # Optimization
+  learning_rate: 1.0e-4
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  warmup_steps: 5000
+
+  # Batch size (effective = batch_size * gradient_accumulation_steps)
+  batch_size: 8
+  gradient_accumulation_steps: 4  # Effective batch size: 32
+
+  # Duration
+  num_epochs: 20
+  max_steps: null  # null = use num_epochs
+
+  # Mixed precision
+  mixed_precision: true
+
+  # Checkpointing
+  checkpoint_dir: "checkpoints/stage1"
+  save_interval: 5000
+
+  # Logging
+  log_interval: 100
+  eval_interval: 2500
+
+  # Wandb
+  wandb_project: "voxformer"
+  wandb_run_name: "stage1-librispeech"
+
+# Data Configuration
+data:
+  train_data: "/data/librispeech/train-clean-100"
+  eval_data: "/data/librispeech/dev-clean"
+  data_format: "librispeech"
+  sample_rate: 16000
+  max_audio_len: 30.0
+  max_text_len: 256
+  num_workers: 4
+
+# Loss Configuration
+loss:
+  ctc_weight: 0.3
+  ce_weight: 0.7
+  label_smoothing: 0.1
+  warmup_ctc_weight: 0.4
+  warmup_ce_weight: 0.6
+  warmup_steps: 5000
+
+# Tokenizer
+tokenizer:
+  vocab_size: 2000
+  model_path: "tokenizer/tokenizer.model"

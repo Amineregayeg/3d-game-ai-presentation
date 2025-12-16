@@ -1,0 +1,9 @@
+export { AvatarSlideWrapper } from "./AvatarSlideWrapper";
+export { AvatarTitleSlide } from "./AvatarTitleSlide";
+export { AvatarArchitectureSlide } from "./AvatarArchitectureSlide";
+export { ElevenLabsSlide } from "./ElevenLabsSlide";
+export { LipSyncSlide } from "./LipSyncSlide";
+export { VisemeBlendSlide } from "./VisemeBlendSlide";
+export { StreamingSlide } from "./StreamingSlide";
+export { GameEngineSlide } from "./GameEngineSlide";
+export { AvatarRoadmapSlide } from "./AvatarRoadmapSlide";
