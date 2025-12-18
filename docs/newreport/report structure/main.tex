@@ -1,0 +1,269 @@
+%===============================================================================
+%                     Deep Learning Final Project Report Template
+%===============================================================================
+
+\documentclass[12pt]{article}
+
+\input{preamble}
+
+ \begin{document}
+
+%===============================================================================
+%                                FRONT PAGE
+%===============================================================================
+\begin{titlepage}
+    \centering
+
+    % MedTech logo
+    \includegraphics[width=8cm]{images/medtech.png}\\[0.3 cm]
+    {\Large South Mediterranean University}\\[1.5cm]
+
+    % Report type and course
+    {\Large \textbf{Final Project Report}}\\[0.3cm]
+    {\large \CourseCode{} — \CourseName{}}\\[1.5cm]
+
+    \rule{\linewidth}{0.7pt}\\[0.7cm]
+    {\LARGE \textbf{This is a Project Title Placeholder}}\\[0.7cm]
+    \rule{\linewidth}{0.7pt}\\[1.8cm]
+
+    {\large By}\\[0.7cm]
+    {\large
+        Student 1\\
+        Student 2\\
+        Student 3\\
+        Student 4\\
+        Student 5\\[1.8cm]
+    }
+
+    % Date
+    {\large \textit{Defended on December 2025, Evaluated By:}}\\[0.1cm]
+
+    % Committee-style table 
+    \vfill
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lll}
+        \hline
+        Hichem Kallel          & Professor and Dean          & \textit{Lecturer} \\
+        Mohamed Iheb Hergli    & Teaching Assistant & \textit{Lab Instructor} \\
+        \hline
+    \end{tabular*}
+
+\end{titlepage}
+
+%===============================================================================
+%                     Declaration & Contribution Statement
+%===============================================================================
+\clearpage
+\thispagestyle{plain}
+\begin{center}
+    {\Large \textbf{Declaration \& Contribution Statement}}\\[1.2cm]
+\end{center}
+
+\noindent The undersigned students hereby declare that the present report, submitted as part 
+of the \CourseCode{} - \CourseName{} Final Project, represents their original 
+work. Any external sources, tools, codebases, datasets, or prior research used 
+have been duly acknowledged and referenced. \\
+
+\noindent  Each student also confirms that they have contributed actively and meaningfully 
+to the completion of this project. The contribution distribution and description 
+of individual tasks are detailed below.\\[1.2cm]
+
+% --- Contribution table ---
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} p{4cm} p{2cm} p{8cm}}
+\toprule
+\textbf{Student} & \textbf{Percentage} & \textbf{Tasks \& Contributions}\\
+\midrule
+
+Student 1 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+
+Student 2 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+
+Student 3 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+
+Student 4 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+
+Student 5 & \_\_\% & \textit{Write Contribution here.}\\[0.7cm]
+
+\bottomrule
+\end{tabular*}
+
+\vfill
+\noindent \textbf{Signatures:}\\[0.5cm]
+
+\noindent Student 1: \rule{8cm}{0.4pt}\\[0.6cm]
+\noindent Student 2: \rule{8cm}{0.4pt}\\[0.6cm]
+\noindent Student 3: \rule{8cm}{0.4pt}\\[0.6cm]
+\noindent Student 4: \rule{8cm}{0.4pt}\\[0.6cm]
+\noindent Student 5: \rule{8cm}{0.4pt}\\
+
+\clearpage
+
+
+\tableofcontents
+\newpage
+
+%===============================================================================
+%                               INTRODUCTION
+%===============================================================================
+\section{Introduction}
+
+This section must clearly introduce the full context of the project, including:
+
+\begin{itemize}
+    \item General problem domain (e.g., computer vision, NLP, reinforcement learning).
+    \item Motivation and importance of the task.
+    \item Real-world relevance and practical use cases.
+    \item High-level description of the proposed solution.
+    \item Summary of what each section of the report covers.
+\end{itemize}
+
+\newpage
+
+%===============================================================================
+%                                 BACKGROUND
+%===============================================================================
+\section{Background}
+
+Students must provide a comprehensive overview of all foundational elements \textit{(the following subsections are purely indicative and may be subject to change by students)}
+
+\subsection{Key Concepts \& Definitions}
+Explain and define the main concepts relevant to your project (e.g., CNNs, RNNs, Transformers, embeddings, attention, loss functions, optimization algorithms).
+
+\subsection{Related Work and Inspirations}
+Summarize prior research, academic work, or existing projects that inspired your approach.  
+\textbf{All statements must be properly referenced} (Example : Deep learning is widely used \cite{goodfellow2016deep}).  
+Discuss:
+\begin{itemize}
+    \item What similar works attempted.
+    \item Lessons learned from previous studies.
+    \item Gaps your project aims to address.
+\end{itemize}
+
+\subsection{Dataset Description}
+Explain:
+\begin{itemize}
+    \item Dataset origin and source.
+    \item Structure and size.
+    \item Preprocessing steps.
+    \item Ethical, privacy, or bias considerations if applicable.
+\end{itemize}
+
+\subsection{Evaluation Metrics}
+Define and formulaically express all metrics you intend to use, such as:
+\begin{itemize}
+    \item Accuracy, Precision, Recall, F1-score, MSE, MAE, RMSE
+    \item BLEU, ROUGE, Inception Score, FID (for GANs)
+\end{itemize}
+
+\noindent Every metric must include:
+\begin{itemize}
+    \item Formal definition
+    \item Intuition
+    \item Why it is relevant
+\end{itemize}
+
+\newpage
+
+
+%===============================================================================
+%                                METHODOLOGY
+%===============================================================================
+\section{Methodology}
+
+This section must thoroughly describe the technical work performed during the project. \textit{(the following subsections are purely indicative and may be subject to change by students)}
+
+\subsection{System Architecture Overview}
+Include diagrams explaining:
+\begin{itemize}
+    \item Full pipeline from raw data to evaluation.
+    \item Components (preprocessing, model, training, inference, interface).
+\end{itemize}
+
+\subsection{Models Used}
+Discuss:
+\begin{itemize}
+    \item Hard-coded architectures.
+    \item Pretrained architectures (why selected).
+    \item Mathematical formulations where required.
+\end{itemize}
+
+\subsection{Training Strategy}
+Include:
+\begin{itemize}
+    \item Loss functions.
+    \item Optimizers and learning rate schedules.
+    \item Batch size, epochs, early stopping strategies.
+\end{itemize}
+
+
+\subsection{Experimental Setup}
+Describe:
+\begin{itemize}
+    \item Hardware used (GPU/CPU).
+    \item Software frameworks (PyTorch, TensorFlow, HuggingFace, etc.).
+\end{itemize}
+
+\vspace{\baselineskip}
+
+\noindent \textbf{You may include pseudocode for an important script, but make sure there is \textcolor{red}{No actual source code appears in this report.}}
+
+\newpage
+
+%===============================================================================
+%                           RESULTS AND DISCUSSION
+%===============================================================================
+\section{Results and Discussion}
+
+This section must contain:\textit{(the following subsections are purely indicative and may be subject to change by students)}
+
+
+\subsection{Quantitative Results}
+\begin{itemize}
+    \item Tables with metrics.
+    \item Comparisons between models.
+    \item Error analysis.
+\end{itemize}
+
+\subsection{Qualitative Results}
+Include:
+\begin{itemize}
+    \item Sample predictions.
+    \item Visualizations.
+    \item Inference.
+    \item Screenshots of the final interface.
+\end{itemize}
+
+\subsection{Critical Discussion}
+Discuss:
+\begin{itemize}
+    \item Strengths of your chosen model(s).
+    \item Limitations and potential biases.
+    \item Unexpected findings.
+    \item Why certain models performed better.
+\end{itemize}
+
+\newpage
+
+
+%===============================================================================
+%                                   CONCLUSION
+%===============================================================================
+\section{Conclusion}
+
+Summarize:
+
+\begin{itemize}
+    \item Main findings.
+    \item What worked well and what didn't.
+    \item Contribution of your work.
+    \item Validity threats and mitigation strategies.
+    \item Future directions or possible extensions.
+\end{itemize}
+
+\newpage
+
+%===============================================================================
+%                                  REFERENCES
+%===============================================================================
+\printbibliography
+
+\end{document}

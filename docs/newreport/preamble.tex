@@ -1,0 +1,79 @@
+%===============================================================================
+%                         Deep Learning Final Project — Preamble
+%===============================================================================
+\ProvidesPackage{preamble}
+
+% --- Encoding & Language ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} % use scalable Latin Modern fonts to enable microtype expansion
+\usepackage{microtype}
+\usepackage[english]{babel}
+\usepackage{csquotes}
+
+% --- Page Setup ---
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% --- Math Packages ---
+\usepackage{amsmath, amssymb, amsthm, mathtools, bm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}{Definition}[section]
+
+% --- Graphics & Figures ---
+\usepackage{graphicx}
+\graphicspath{{./images/}{./figures/}}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+% --- Colors ---
+\usepackage[dvipsnames]{xcolor}
+
+% --- Hyperlinks ---
+\usepackage[hidelinks]{hyperref}
+
+% --- Lists ---
+\usepackage{enumitem}
+\setlist[itemize]{topsep=4pt}
+\setlist[enumerate]{topsep=4pt}
+
+% --- Bibliography ---
+\usepackage[
+    backend=biber,
+    style=ieee,
+    sorting=none
+]{biblatex}
+\addbibresource{reference.bib} 
+
+% --- Title Formatting ---
+\usepackage{titling}
+
+% --- Header & Footer ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{CS495 — Deep Learning}
+\rhead{Final Project Report}
+\cfoot{\thepage}
+
+% --- Code (optional for pseudocode) ---
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\small,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    breaklines=true,
+    tabsize=2
+}
+
+% --- Custom Commands ---
+\newcommand{\University}{Mediterranean Institute of Technology (MedTech)}
+\newcommand{\CourseCode}{CS495}
+\newcommand{\CourseName}{Deep Learning}
+\newcommand{\ProjectTitle}{\textbf{Deep Learning Final Project}}

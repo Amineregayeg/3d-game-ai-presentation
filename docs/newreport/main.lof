@@ -1,0 +1,21 @@
+\babel@toc {english}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Complete VoxFormer architecture with component dimensions and connections.}}{18}{figure.caption.16}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces VoxFormer training convergence over 70 epochs.}}{22}{figure.caption.35}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Advanced RAG system architecture with hybrid retrieval and agentic validation.}}{23}{figure.caption.36}%
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Text-to-speech and avatar animation pipeline with latency targets.}}{27}{figure.caption.45}%
+\contentsline {figure}{\numberline {2.5}{\ignorespaces MuseTalk latent space lip synchronization pipeline.}}{36}{figure.caption.69}%
+\contentsline {figure}{\numberline {2.6}{\ignorespaces Complete DSP voice isolation pipeline with all processing stages.}}{37}{figure.caption.71}%
+\contentsline {figure}{\numberline {2.7}{\ignorespaces Model Context Protocol architecture for Blender integration.}}{41}{figure.caption.91}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Word Error Rate comparison across LibriSpeech test sets.}}{45}{figure.caption.98}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces VoxFormer training convergence over 70 epochs with 3-stage curriculum.}}{46}{figure.caption.99}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Spectrogram visualization of voice isolation pipeline stages.}}{49}{figure.caption.110}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {C.1}{\ignorespaces Complete 3D Game AI Assistant system architecture showing all component interconnections.}}{63}{figure.caption.121}%
+\contentsline {figure}{\numberline {C.2}{\ignorespaces User interface demonstration showing end-to-end voice-controlled 3D asset creation workflow.}}{64}{figure.caption.122}%

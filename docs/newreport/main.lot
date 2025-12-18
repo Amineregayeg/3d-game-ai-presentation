@@ -1,0 +1,41 @@
+\babel@toc {english}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Blender MCP Operation Categories}}{17}{table.caption.13}%
+\contentsline {table}{\numberline {2.2}{\ignorespaces WavLM Encoder Specifications}}{19}{table.caption.21}%
+\contentsline {table}{\numberline {2.3}{\ignorespaces Zipformer Downsampling Configuration}}{21}{table.caption.26}%
+\contentsline {table}{\numberline {2.4}{\ignorespaces VoxFormer Training Stages}}{22}{table.caption.32}%
+\contentsline {table}{\numberline {2.5}{\ignorespaces DSP Voice Isolation Parameters}}{29}{table.caption.52}%
+\contentsline {table}{\numberline {2.6}{\ignorespaces BGE-M3 Embedding Model Specifications}}{31}{table.caption.55}%
+\contentsline {table}{\numberline {2.7}{\ignorespaces Cross-Encoder Specifications}}{32}{table.caption.59}%
+\contentsline {table}{\numberline {2.8}{\ignorespaces ElevenLabs TTS Specifications}}{34}{table.caption.64}%
+\contentsline {table}{\numberline {2.9}{\ignorespaces Phoneme-to-Viseme Mapping}}{35}{table.caption.66}%
+\contentsline {table}{\numberline {2.10}{\ignorespaces Deep Attractor Network Architecture}}{40}{table.caption.86}%
+\contentsline {table}{\numberline {2.11}{\ignorespaces Blender MCP Tool Categories}}{42}{table.caption.93}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Hardware Configuration}}{44}{table.caption.96}%
+\contentsline {table}{\numberline {3.2}{\ignorespaces VoxFormer Word Error Rate (\%)}}{45}{table.caption.97}%
+\contentsline {table}{\numberline {3.3}{\ignorespaces VoxFormer Ablation Study (test-clean WER \%)}}{46}{table.caption.100}%
+\contentsline {table}{\numberline {3.4}{\ignorespaces VoxFormer Inference Latency}}{46}{table.caption.101}%
+\contentsline {table}{\numberline {3.5}{\ignorespaces RAG Retrieval Performance}}{46}{table.caption.102}%
+\contentsline {table}{\numberline {3.6}{\ignorespaces RAGAS Evaluation Metrics}}{47}{table.caption.103}%
+\contentsline {table}{\numberline {3.7}{\ignorespaces RAG Pipeline Latency Breakdown (Average of 100 Queries)}}{47}{table.caption.104}%
+\contentsline {table}{\numberline {3.8}{\ignorespaces RAG Performance by Query Complexity}}{47}{table.caption.105}%
+\contentsline {table}{\numberline {3.9}{\ignorespaces TTS and Lip-Sync Latency}}{48}{table.caption.106}%
+\contentsline {table}{\numberline {3.10}{\ignorespaces TTS Quality Metrics}}{48}{table.caption.107}%
+\contentsline {table}{\numberline {3.11}{\ignorespaces SNR Improvement by Pipeline Stage}}{48}{table.caption.108}%
+\contentsline {table}{\numberline {3.12}{\ignorespaces Source Separation Metrics on LibriMix}}{49}{table.caption.109}%
+\contentsline {table}{\numberline {3.13}{\ignorespaces MCP Task Success Rate by Category}}{49}{table.caption.111}%
+\contentsline {table}{\numberline {3.14}{\ignorespaces Individual MCP Tool Metrics}}{50}{table.caption.112}%
+\contentsline {table}{\numberline {3.15}{\ignorespaces Export Quality Metrics by Target Engine}}{50}{table.caption.113}%
+\contentsline {table}{\numberline {3.16}{\ignorespaces Workflow Time Comparison (minutes)}}{50}{table.caption.114}%
+\contentsline {table}{\numberline {3.17}{\ignorespaces System Usability Scale (SUS) Results}}{51}{table.caption.115}%
+\contentsline {table}{\numberline {3.18}{\ignorespaces End-to-End Pipeline Latency}}{51}{table.caption.116}%
+\contentsline {table}{\numberline {3.19}{\ignorespaces System Reliability Metrics (1,000 test queries)}}{51}{table.caption.117}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {B.1}{\ignorespaces Complete VoxFormer Hyperparameters}}{61}{table.caption.119}%
+\contentsline {table}{\numberline {B.2}{\ignorespaces RAG System Configuration Parameters}}{62}{table.caption.120}%
+\addvspace {10\p@ }
