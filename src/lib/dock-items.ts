@@ -33,6 +33,22 @@ export const dockItems: DockItem[] = [
     iconUrl: "https://cdn-icons-png.flaticon.com/512/3845/3845731.png",
   },
   {
+    id: "full_presentation",
+    name: "Full Pipeline",
+    href: "/full_presentation",
+    bgGradient: "bg-gradient-to-br from-cyan-500 via-purple-600 to-orange-600",
+    color: "text-cyan-400",
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/1903/1903496.png",
+  },
+  {
+    id: "full_demo",
+    name: "Full Demo",
+    href: "/full_demo",
+    bgGradient: "bg-gradient-to-br from-cyan-500 via-pink-500 to-orange-500",
+    color: "text-cyan-400",
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/3135/3135768.png",
+  },
+  {
     id: "technical",
     name: "VoxFormer STT",
     href: "/technical",

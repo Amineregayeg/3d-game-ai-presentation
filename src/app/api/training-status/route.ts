@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 
 type TrainingStatus = "running" | "completed" | "error" | "idle" | "initializing" | "stopped";
 
@@ -38,10 +38,131 @@ let epochHistory: Array<{
 
 let lossHistory: Array<{ step: number; loss: number }> = [];
 
+// Track epoch completions from metrics changes
+let lastSeenEpoch = -1;
+let lastEpochLoss = 0;
+
+interface BackupEntry {
+  time: string;
+  type: string;
+  status: "success" | "failed";
+}
+
+interface EpochHistoryEntry {
+  epoch: number;
+  avgLoss: number;
+  ctcLoss: number;
+  ceLoss: number;
+  wer: number | null;
+  time: string;
+}
+
+// Support multiple stages - check fixed first, then hybrid, then stage4
+const STAGE4_FIXED_PATH = "/home/developer/voxformer_checkpoints/stage4_fixed";
+const STAGE4_HYBRID_PATH = "/home/developer/voxformer_checkpoints/stage4_hybrid";
+const STAGE4_PATH = "/home/developer/voxformer_checkpoints/stage4";
+
+async function getActiveStagePath(): Promise<string> {
+  const { stat } = await import("fs/promises");
+
+  // ALWAYS prefer stage4_fixed (H100 training with fixes) when it exists
+  try {
+    await stat(`${STAGE4_FIXED_PATH}/metrics.json`);
+    return STAGE4_FIXED_PATH;
+  } catch {
+    // stage4_fixed doesn't exist, try hybrid
+  }
+
+  try {
+    await stat(`${STAGE4_HYBRID_PATH}/metrics.json`);
+    return STAGE4_HYBRID_PATH;
+  } catch {
+    // Fall back to stage4
+  }
+
+  return STAGE4_PATH;
+}
+
+// WER History entry
+interface WERHistoryEntry {
+  step: number;
+  wer: number;
+  timestamp: string;
+}
+
+// Parse WER history from training.log
+async function parseWERHistory(stagePath: string): Promise<WERHistoryEntry[]> {
+  const werHistory: WERHistoryEntry[] = [];
+  try {
+    const logPath = `${stagePath}/training.log`;
+    const logContent = await readFile(logPath, "utf-8");
+
+    // Parse lines like: 2025-12-17 18:19:04,737 - __main__ - INFO - Step 500 - Eval WER: 98.85%
+    const werRegex = /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d+ - .+ - INFO - Step (\d+) - Eval WER: ([\d.]+)%/g;
+    let match;
+    const seenSteps = new Set<number>();
+
+    while ((match = werRegex.exec(logContent)) !== null) {
+      const step = parseInt(match[2]);
+      // Only keep the latest WER for each step (avoid duplicates from restarts)
+      if (!seenSteps.has(step)) {
+        seenSteps.add(step);
+        werHistory.push({
+          step,
+          wer: parseFloat(match[3]),
+          timestamp: match[1],
+        });
+      } else {
+        // Update to latest value for this step
+        const idx = werHistory.findIndex(w => w.step === step);
+        if (idx >= 0) {
+          werHistory[idx] = {
+            step,
+            wer: parseFloat(match[3]),
+            timestamp: match[1],
+          };
+        }
+      }
+    }
+
+    werHistory.sort((a, b) => a.step - b.step);
+  } catch {
+    // Log doesn't exist or can't be read
+  }
+  return werHistory;
+}
+
+const EPOCH_HISTORY_PATH = "/home/developer/voxformer_checkpoints/stage4_hybrid/epoch_history.json";
+
+// Load epoch history from file
+async function loadEpochHistory(): Promise<EpochHistoryEntry[]> {
+  try {
+    const data = await readFile(EPOCH_HISTORY_PATH, "utf-8");
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+// Save epoch history to file
+async function saveEpochHistory(history: EpochHistoryEntry[]): Promise<void> {
+  try {
+    await writeFile(EPOCH_HISTORY_PATH, JSON.stringify(history, null, 2));
+  } catch (err) {
+    console.error("Failed to save epoch history:", err);
+  }
+}
+
 export async function GET() {
   try {
+    // Determine active stage (hybrid or stage4)
+    const stagePath = await getActiveStagePath();
+
+    // Load persisted epoch history
+    epochHistory = await loadEpochHistory();
+
     // Read metrics from local file (backed up from GPU every 5 min)
-    const metricsPath = "/home/developer/voxformer_checkpoints/stage4/metrics.json";
+    const metricsPath = `${stagePath}/metrics.json`;
     let metricsJson = "";
     try {
       metricsJson = await readFile(metricsPath, "utf-8");
@@ -62,8 +183,8 @@ export async function GET() {
     } catch {
       // Fallback: default idle state
       metrics = {
-        stage: "stage4",
-        total_epochs: 5,
+        stage: "stage4_hybrid",
+        total_epochs: 10,
         total_steps_per_epoch: 3568,
         status: "idle",
         epoch: 0,
@@ -81,44 +202,70 @@ export async function GET() {
       };
     }
 
-    // Read epoch history from local file
-    const epochLogPath = "/home/developer/voxformer_checkpoints/stage4/epoch_history.log";
-    let epochLog = "";
+    // Track epoch completions from metrics (when epoch number increases)
+    if (metrics.epoch > lastSeenEpoch && lastSeenEpoch >= 0) {
+      // Epoch completed - record the last loss before epoch changed
+      const completedEpoch = lastSeenEpoch;
+      const now = new Date();
+      const timeStr = now.toTimeString().substring(0, 5);
+
+      if (!epochHistory.some((h) => h.epoch === completedEpoch)) {
+        epochHistory.push({
+          epoch: completedEpoch,
+          avgLoss: lastEpochLoss,
+          ctcLoss: lastEpochLoss,
+          ceLoss: 0,
+          wer: null,
+          time: timeStr,
+        });
+        epochHistory.sort((a, b) => a.epoch - b.epoch);
+        // Persist to file
+        await saveEpochHistory(epochHistory);
+      }
+    }
+    lastSeenEpoch = metrics.epoch;
+    lastEpochLoss = metrics.loss;
+
+    // Read backup log to get backup history
+    const backupLogPath = `${stagePath}/backup.log`;
+    let backupLog = "";
     try {
-      epochLog = await readFile(epochLogPath, "utf-8");
+      backupLog = await readFile(backupLogPath, "utf-8");
     } catch {
       // File doesn't exist yet
     }
 
-    // Parse epoch history: "epoch:0,loss:5.13,wer:25.4,time:2025-12-16 10:18:00"
-    if (epochLog && epochLog.trim()) {
-      const lines = epochLog.trim().split("\n");
+    // Parse backup log entries
+    const backupHistory: BackupEntry[] = [];
+    if (backupLog && backupLog.trim()) {
+      const lines = backupLog.trim().split("\n").slice(-50); // Last 50 lines
       for (const line of lines) {
-        // Support both formats: with and without WER
-        const matchWithWer = line.match(/epoch:(\d+),loss:(\d+\.?\d*),wer:(\d+\.?\d*),time:(.+)/);
-        const matchWithoutWer = line.match(/epoch:(\d+),loss:(\d+\.?\d*),time:(.+)/);
-
-        const match = matchWithWer || matchWithoutWer;
+        // Format: [2025-12-16 12:11:32] metrics.json backed up
+        const match = line.match(/\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] (.+)/);
         if (match) {
-          const epoch = parseInt(match[1]);
-          const avgLoss = parseFloat(match[2]);
-          const wer = matchWithWer ? parseFloat(match[3]) : null;
-          const timeStr = matchWithWer ? match[4] : match[3];
-          const time = timeStr.split(" ")[1] || timeStr;
+          const time = match[1];
+          const message = match[2];
 
-          if (!epochHistory.some((h) => h.epoch === epoch)) {
-            epochHistory.push({
-              epoch,
-              avgLoss,
-              ctcLoss: avgLoss, // CTC-only in Stage 4
-              ceLoss: 0,
-              wer,
-              time: time.substring(0, 5),
-            });
+          let type = "info";
+          let status: "success" | "failed" = "success";
+
+          if (message.includes("metrics.json backed up")) {
+            type = "metrics";
+          } else if (message.includes("checkpoint backed up") || message.includes("latest checkpoint")) {
+            type = "checkpoint";
+          } else if (message.includes("best.pt")) {
+            type = "best_checkpoint";
+          } else if (message.includes("Backup complete")) {
+            type = "complete";
+          } else if (message.includes("Starting backup")) {
+            type = "start";
+          } else if (message.includes("failed") || message.includes("error")) {
+            status = "failed";
           }
+
+          backupHistory.push({ time, type, status });
         }
       }
-      epochHistory.sort((a, b) => a.epoch - b.epoch);
     }
 
     // Build loss history from current metrics
@@ -154,6 +301,12 @@ export async function GET() {
       eta = `${hours}h ${minutes}m`;
     }
 
+    // Parse WER history from training log
+    const werHistory = await parseWERHistory(stagePath);
+
+    // Get current WER from history if not in metrics
+    const currentWER = metrics.wer ?? (werHistory.length > 0 ? werHistory[werHistory.length - 1].wer : null);
+
     return NextResponse.json({
       metrics: {
         epoch: metrics.epoch,
@@ -163,7 +316,7 @@ export async function GET() {
         loss: metrics.loss,
         ctcLoss: metrics.ctc_loss,
         ceLoss: metrics.ce_loss,
-        wer: metrics.wer,
+        wer: currentWER,
         learningRate: metrics.learning_rate,
         speed: metrics.speed,
         gpuMemory: metrics.gpu_memory,
@@ -176,6 +329,8 @@ export async function GET() {
       },
       history: epochHistory,
       lossHistory,
+      backupHistory,
+      werHistory,
       source: usingVPSMetrics ? "vps" : "default",
     });
   } catch (error) {
@@ -203,6 +358,7 @@ export async function GET() {
         },
         history: epochHistory,
         lossHistory,
+        backupHistory: [],
         error: "Failed to fetch training status",
         source: "error",
       },

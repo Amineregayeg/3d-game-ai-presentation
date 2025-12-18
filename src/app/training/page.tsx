@@ -14,6 +14,7 @@ import {
   Activity,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   RefreshCw,
   Gauge,
   BarChart3,
@@ -21,6 +22,7 @@ import {
   Flame,
   Database,
   Shield,
+  TrendingUp,
 } from "lucide-react";
 
 type TrainingStatus = "running" | "completed" | "error" | "idle" | "initializing" | "stopped";
@@ -54,6 +56,18 @@ interface EpochHistory {
   time: string;
 }
 
+interface BackupEntry {
+  time: string;
+  type: string;
+  status: "success" | "failed";
+}
+
+interface WERHistoryEntry {
+  step: number;
+  wer: number;
+  timestamp: string;
+}
+
 export default function TrainingDashboard() {
   const [metrics, setMetrics] = useState<TrainingMetrics>({
     epoch: 0,
@@ -77,6 +91,8 @@ export default function TrainingDashboard() {
 
   const [history, setHistory] = useState<EpochHistory[]>([]);
   const [lossHistory, setLossHistory] = useState<{ step: number; loss: number }[]>([]);
+  const [backupHistory, setBackupHistory] = useState<BackupEntry[]>([]);
+  const [werHistory, setWerHistory] = useState<WERHistoryEntry[]>([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<"loss" | "ctc" | "ce">("loss");
@@ -91,6 +107,8 @@ export default function TrainingDashboard() {
       setMetrics(data.metrics);
       if (data.history) setHistory(data.history);
       if (data.lossHistory) setLossHistory(data.lossHistory);
+      if (data.backupHistory) setBackupHistory(data.backupHistory);
+      if (data.werHistory) setWerHistory(data.werHistory);
       setError(null);
     } catch (err) {
       setError("Failed to fetch training status");
@@ -475,31 +493,255 @@ export default function TrainingDashboard() {
               </CardContent>
             </Card>
 
-            {/* WER Display */}
-            {metrics.wer !== null && (
-              <Card className="bg-gradient-to-br from-pink-500/20 to-pink-500/5 border-pink-500/30 backdrop-blur-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2 text-pink-400">
+            {/* Backup History Table */}
+            <Card className="bg-slate-800/60 border-slate-700/50 backdrop-blur-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2 text-white">
+                  <Database className="h-5 w-5 text-cyan-400" />
+                  Backup History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-y-auto max-h-48">
+                  {backupHistory.length > 0 ? (
+                    <table className="w-full text-xs">
+                      <thead className="sticky top-0 bg-slate-800/95">
+                        <tr className="border-b border-slate-700">
+                          <th className="text-left py-1.5 px-1 text-slate-400 font-medium">Time</th>
+                          <th className="text-left py-1.5 px-1 text-slate-400 font-medium">Type</th>
+                          <th className="text-right py-1.5 px-1 text-slate-400 font-medium">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {backupHistory.slice().reverse().slice(0, 20).map((entry, idx) => (
+                          <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-700/30">
+                            <td className="py-1.5 px-1 font-mono text-slate-300">
+                              {entry.time.split(' ')[1] || entry.time}
+                            </td>
+                            <td className="py-1.5 px-1">
+                              <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                entry.type === 'checkpoint' ? 'bg-purple-500/20 text-purple-400' :
+                                entry.type === 'best_checkpoint' ? 'bg-emerald-500/20 text-emerald-400' :
+                                entry.type === 'metrics' ? 'bg-cyan-500/20 text-cyan-400' :
+                                entry.type === 'complete' ? 'bg-green-500/20 text-green-400' :
+                                entry.type === 'start' ? 'bg-yellow-500/20 text-yellow-400' :
+                                'bg-slate-600/50 text-slate-400'
+                              }`}>
+                                {entry.type}
+                              </span>
+                            </td>
+                            <td className="py-1.5 px-1 text-right">
+                              {entry.status === 'success' ? (
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 inline" />
+                              ) : (
+                                <AlertCircle className="h-3.5 w-3.5 text-red-400 inline" />
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="py-6 text-center text-slate-500">
+                      <Database className="h-6 w-6 mx-auto mb-2 opacity-50" />
+                      <p className="text-xs">No backup history yet</p>
+                      <p className="text-xs text-slate-600 mt-1">Backups sync every 5 min</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* WER Tracking Card - PROMINENT */}
+            <Card className={`backdrop-blur-sm ${
+              metrics.wer === null ? 'bg-slate-800/60 border-slate-700/50' :
+              metrics.wer > 100 ? 'bg-gradient-to-br from-red-500/30 to-red-500/5 border-red-500/50 ring-2 ring-red-500/30' :
+              metrics.wer > 50 ? 'bg-gradient-to-br from-orange-500/20 to-orange-500/5 border-orange-500/30' :
+              metrics.wer > 25 ? 'bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 border-yellow-500/30' :
+              metrics.wer > 15 ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border-cyan-500/30' :
+              'bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border-emerald-500/30'
+            }`}>
+              <CardHeader className="pb-2">
+                <CardTitle className={`text-lg flex items-center gap-2 ${
+                  metrics.wer === null ? 'text-slate-400' :
+                  metrics.wer > 100 ? 'text-red-400' :
+                  metrics.wer > 50 ? 'text-orange-400' :
+                  metrics.wer > 25 ? 'text-yellow-400' :
+                  metrics.wer > 15 ? 'text-cyan-400' :
+                  'text-emerald-400'
+                }`}>
+                  {metrics.wer !== null && metrics.wer > 100 ? (
+                    <AlertTriangle className="h-5 w-5 animate-pulse" />
+                  ) : (
                     <Target className="h-5 w-5" />
-                    Word Error Rate
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-2">
-                    <p className="text-4xl font-bold text-white">{metrics.wer.toFixed(1)}%</p>
-                    <p className="text-sm text-slate-400 mt-1">
-                      Target: &lt; 15%
-                    </p>
-                    <div className="mt-3 h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 ${metrics.wer < 15 ? 'bg-emerald-500' : metrics.wer < 25 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                        style={{ width: `${Math.min(100, (1 - metrics.wer / 50) * 100)}%` }}
-                      />
+                  )}
+                  Word Error Rate (WER)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-2">
+                  <p className={`text-4xl font-bold ${
+                    metrics.wer === null ? 'text-slate-500' :
+                    metrics.wer > 100 ? 'text-red-400' :
+                    metrics.wer > 50 ? 'text-orange-400' :
+                    metrics.wer > 25 ? 'text-yellow-400' :
+                    metrics.wer > 15 ? 'text-cyan-400' :
+                    'text-emerald-400'
+                  }`}>
+                    {metrics.wer !== null ? `${metrics.wer.toFixed(1)}%` : 'Waiting...'}
+                  </p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Target: &lt; 15% | Good: &lt; 25%
+                  </p>
+
+                  {/* WER Status indicator */}
+                  {metrics.wer !== null && (
+                    <div className={`mt-3 px-3 py-1.5 rounded-lg text-xs font-medium inline-flex items-center gap-2 ${
+                      metrics.wer > 100 ? 'bg-red-500/20 text-red-400' :
+                      metrics.wer > 50 ? 'bg-orange-500/20 text-orange-400' :
+                      metrics.wer > 25 ? 'bg-yellow-500/20 text-yellow-400' :
+                      metrics.wer > 15 ? 'bg-cyan-500/20 text-cyan-400' :
+                      'bg-emerald-500/20 text-emerald-400'
+                    }`}>
+                      {metrics.wer > 100 ? (
+                        <><AlertTriangle className="h-3 w-3" /> CRITICAL - Notify Claude!</>
+                      ) : metrics.wer > 50 ? (
+                        <><AlertCircle className="h-3 w-3" /> High - Monitor closely</>
+                      ) : metrics.wer > 25 ? (
+                        <><TrendingDown className="h-3 w-3" /> Improving - Keep training</>
+                      ) : metrics.wer > 15 ? (
+                        <><TrendingDown className="h-3 w-3" /> Good progress!</>
+                      ) : (
+                        <><CheckCircle2 className="h-3 w-3" /> Excellent!</>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Progress bar to target */}
+                  <div className="mt-3 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        metrics.wer === null ? 'bg-slate-600' :
+                        metrics.wer > 100 ? 'bg-red-500' :
+                        metrics.wer > 50 ? 'bg-orange-500' :
+                        metrics.wer > 25 ? 'bg-yellow-500' :
+                        metrics.wer > 15 ? 'bg-cyan-500' :
+                        'bg-emerald-500'
+                      }`}
+                      style={{ width: `${metrics.wer !== null ? Math.max(5, Math.min(100, 100 - metrics.wer)) : 0}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* WER History mini chart */}
+                {werHistory.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-slate-700">
+                    <p className="text-xs text-slate-400 mb-2">WER History</p>
+                    <div className="h-20 relative">
+                      <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="werGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#ec4899" stopOpacity="0.3" />
+                            <stop offset="100%" stopColor="#ec4899" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        {/* Area */}
+                        <polygon
+                          fill="url(#werGradient)"
+                          points={`0,100 ${werHistory.map((w, i) => {
+                            const x = (i / Math.max(1, werHistory.length - 1)) * 100;
+                            const maxWer = Math.max(100, ...werHistory.map(h => h.wer));
+                            const y = 100 - (w.wer / maxWer) * 90;
+                            return `${x},${y}`;
+                          }).join(" ")} 100,100`}
+                        />
+                        {/* Line */}
+                        <polyline
+                          fill="none"
+                          stroke="#ec4899"
+                          strokeWidth="2"
+                          vectorEffect="non-scaling-stroke"
+                          points={werHistory.map((w, i) => {
+                            const x = (i / Math.max(1, werHistory.length - 1)) * 100;
+                            const maxWer = Math.max(100, ...werHistory.map(h => h.wer));
+                            const y = 100 - (w.wer / maxWer) * 90;
+                            return `${x},${y}`;
+                          }).join(" ")}
+                        />
+                        {/* Target line at 15% */}
+                        <line
+                          x1="0" y1={100 - (15 / Math.max(100, ...werHistory.map(h => h.wer))) * 90}
+                          x2="100" y2={100 - (15 / Math.max(100, ...werHistory.map(h => h.wer))) * 90}
+                          stroke="#10b981"
+                          strokeWidth="1"
+                          strokeDasharray="3,3"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      </svg>
+                      {/* Labels */}
+                      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-slate-500">
+                        <span>Step {werHistory[0]?.step}</span>
+                        <span>Step {werHistory[werHistory.length - 1]?.step}</span>
+                      </div>
+                    </div>
+                    {/* WER History Table */}
+                    <div className="mt-2 max-h-24 overflow-y-auto">
+                      <table className="w-full text-xs">
+                        <tbody>
+                          {werHistory.slice().reverse().slice(0, 5).map((w, i) => (
+                            <tr key={i} className="border-b border-slate-800/50">
+                              <td className="py-1 text-slate-400">Step {w.step}</td>
+                              <td className={`py-1 text-right font-mono ${
+                                w.wer > 100 ? 'text-red-400' :
+                                w.wer > 50 ? 'text-orange-400' :
+                                w.wer > 25 ? 'text-yellow-400' :
+                                'text-cyan-400'
+                              }`}>{w.wer.toFixed(1)}%</td>
+                              <td className="py-1 text-right text-slate-500">
+                                {i > 0 ? (
+                                  werHistory.slice().reverse()[i - 1].wer > w.wer ? (
+                                    <span className="text-red-400">↑</span>
+                                  ) : (
+                                    <span className="text-emerald-400">↓</span>
+                                  )
+                                ) : '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+
+                {/* Thresholds Guide */}
+                <div className="mt-4 pt-3 border-t border-slate-700">
+                  <p className="text-xs text-slate-400 mb-2">WER Thresholds</p>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-red-500" />
+                      <span className="text-slate-400">&gt;100%: <span className="text-red-400">Critical - Contact Claude</span></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-orange-500" />
+                      <span className="text-slate-400">50-100%: <span className="text-orange-400">High - Watch closely</span></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-yellow-500" />
+                      <span className="text-slate-400">25-50%: <span className="text-yellow-400">Moderate - Keep training</span></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-cyan-500" />
+                      <span className="text-slate-400">15-25%: <span className="text-cyan-400">Good progress</span></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-emerald-500" />
+                      <span className="text-slate-400">&lt;15%: <span className="text-emerald-400">Target achieved!</span></span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Column - Charts */}

@@ -1,0 +1,77 @@
+# Stage 4 FIXED: Hybrid CTC-Attention Training
+# Key fixes:
+# 1. Start with high CTC weight, gradually reduce
+# 2. Use warmup for decoder learning
+# 3. No label smoothing (hurts EOS learning)
+# 4. Higher learning rate for decoder
+# 5. Repetition penalty in decoding
+
+model:
+  vocab_size: 2000
+  d_model: 512
+  encoder_num_heads: 8
+  encoder_num_blocks: 3
+  encoder_layers_per_block: 2
+  decoder_num_heads: 8
+  decoder_num_layers: 4
+  d_ff: 2048
+  kernel_size: 31
+  dropout: 0.1
+  wavlm_model_name: microsoft/wavlm-base
+  freeze_wavlm: true
+  unfreeze_top_k: 3
+  ctc_weight: 0.5  # Start higher, will anneal
+
+training:
+  # HIGHER learning rate - critical for decoder
+  learning_rate: 1.0e-4  # Was 5e-6, now 20x higher
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  warmup_steps: 2000     # More warmup
+  batch_size: 8
+  gradient_accumulation_steps: 4
+  num_epochs: 10
+  mixed_precision: true
+  checkpoint_dir: checkpoints/stage4_fixed
+  save_interval: 500
+  keep_last_n: 5
+  resume_from: checkpoints/stage2/best.pt  # Resume from CTC-trained encoder
+  log_interval: 50
+  eval_interval: 500
+  wandb_project: null
+
+data:
+  train_data: /root/voxformer/data/LibriSpeech/train-clean-100
+  eval_data: /root/voxformer/data/LibriSpeech/dev-clean
+  data_format: librispeech
+  sample_rate: 16000
+  max_audio_len: 30.0
+  max_text_len: 256
+  num_workers: 4
+  use_specaugment: true
+  freq_mask_param: 27
+  time_mask_param: 100
+  num_freq_masks: 2
+  num_time_masks: 2
+
+loss:
+  # CTC-heavy start, anneal to attention-heavy
+  ctc_weight_start: 0.8    # Start CTC-heavy
+  ctc_weight_end: 0.3      # End attention-heavy
+  ce_weight_start: 0.2
+  ce_weight_end: 0.7
+  annealing_steps: 10000   # Anneal over 10k steps
+  label_smoothing: 0.0     # NO label smoothing - hurts EOS learning
+
+evaluation:
+  use_ctc_decoding: true
+  use_ar_decoding: true
+  beam_size: 5
+  compute_wer: true
+  # NEW: Repetition penalty
+  repetition_penalty: 1.2
+  no_repeat_ngram_size: 3
+
+tokenizer:
+  vocab_size: 2000
+  model_path: tokenizer/tokenizer.model

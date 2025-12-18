@@ -84,7 +84,8 @@ interface SystemStatus {
 // API Configuration
 // =============================================================================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://5.249.161.66:5000";
+// Use relative paths - they work with basePath and avoid mixed content issues
+const API_BASE = "/3dgameassistant";
 
 // =============================================================================
 // Sample texts for quick testing
@@ -234,11 +235,7 @@ export default function AvatarDemoPage() {
       setProgress(90);
       setProgressMessage("Finalizing...");
 
-      // Prepend API base to URLs
-      data.audio_url = `${API_BASE}${data.audio_url}`;
-      if (data.video_url) {
-        data.video_url = `${API_BASE}${data.video_url}`;
-      }
+      // URLs are already proxied through /api/avatar/media, no need to prepend
 
       setResponse(data);
       setProgress(100);

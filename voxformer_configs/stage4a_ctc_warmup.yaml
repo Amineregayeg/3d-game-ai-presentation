@@ -1,0 +1,64 @@
+# Stage 4a: CTC Warmup (RECOMMENDED FIRST STEP)
+# Train encoder with CTC-only to ensure good representations
+# Then proceed to Stage 4b for decoder training
+
+model:
+  vocab_size: 2000
+  d_model: 512
+  encoder_num_heads: 8
+  encoder_num_blocks: 3
+  encoder_layers_per_block: 2
+  decoder_num_heads: 8
+  decoder_num_layers: 4
+  d_ff: 2048
+  kernel_size: 31
+  dropout: 0.1
+  wavlm_model_name: microsoft/wavlm-base
+  freeze_wavlm: true
+  unfreeze_top_k: 3
+  ctc_weight: 1.0  # CTC ONLY
+
+training:
+  learning_rate: 1.0e-4
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  warmup_steps: 1000
+  batch_size: 8
+  gradient_accumulation_steps: 4
+  num_epochs: 3  # Short - just to warm up encoder
+  mixed_precision: true
+  checkpoint_dir: checkpoints/stage4a_ctc
+  save_interval: 500
+  keep_last_n: 3
+  resume_from: checkpoints/stage2/best.pt
+  log_interval: 50
+  eval_interval: 500
+
+data:
+  train_data: /root/voxformer/data/LibriSpeech/train-clean-100
+  eval_data: /root/voxformer/data/LibriSpeech/dev-clean
+  data_format: librispeech
+  sample_rate: 16000
+  max_audio_len: 30.0
+  max_text_len: 256
+  num_workers: 4
+  use_specaugment: true
+  freq_mask_param: 27
+  time_mask_param: 100
+  num_freq_masks: 2
+  num_time_masks: 2
+
+loss:
+  ctc_weight: 1.0
+  ce_weight: 0.0  # NO decoder loss
+  label_smoothing: 0.0
+
+evaluation:
+  use_ctc_decoding: true
+  use_ar_decoding: false  # Don't evaluate decoder yet
+  beam_size: 5
+  compute_wer: true
+
+tokenizer:
+  vocab_size: 2000
+  model_path: tokenizer/tokenizer.model
