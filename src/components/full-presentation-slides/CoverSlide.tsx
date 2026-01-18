@@ -94,7 +94,7 @@ export function CoverSlide({ slideNumber, totalSlides }: CoverSlideProps) {
       </div>
 
       {/* Slide number */}
-      <div className="absolute bottom-4 right-8 z-20 text-slate-600 text-sm font-mono">
+      <div className="absolute bottom-4 right-8 z-20 text-slate-400 text-base font-mono font-bold">
         {String(slideNumber).padStart(2, '0')} / {String(totalSlides).padStart(2, '0')}
       </div>
     </div>

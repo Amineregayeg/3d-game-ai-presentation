@@ -36,6 +36,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PresentationDock } from "@/components/presentation-dock";
 import { dockItems } from "@/lib/dock-items";
 
+// API URL - Use relative path to go through nginx proxy (avoids HTTPS/HTTP mixed content)
+const API_URL = "";
+
 // Types
 interface Word {
   word: string;
@@ -315,60 +318,73 @@ export default function DemoPage() {
     setAudioState(prev => ({ ...prev, isProcessing: true }));
 
     try {
-      // First, check if the inference server is available
-      const healthRes = await fetch("/api/transcribe", { method: "GET" });
+      // First, check if the VoxFormer inference server is available
+      const healthRes = await fetch(`${API_URL}/api/voxformer/health`, { method: "GET" });
+      const healthData = await healthRes.json();
 
-      if (!healthRes.ok) {
-        console.warn("Inference server not available, using mock");
+      // Check if GPU is unavailable (API returns 200 but status indicates GPU down)
+      if (healthData.status === "gpu_unavailable") {
+        console.warn("VoxFormer GPU not connected:", healthData.message);
         setTranscription({
           ...mockTranscription,
-          text: "[Server unavailable - showing mock data]",
+          text: "[VoxFormer GPU server not connected - showing mock data]",
+          note: "GPU tunnel not active. Start GPU server and SSH tunnel to enable real transcription.",
+        });
+        return;
+      }
+
+      if (!healthRes.ok || healthData.status === "error") {
+        console.warn("VoxFormer server error:", healthData.error);
+        setTranscription({
+          ...mockTranscription,
+          text: "[VoxFormer server error - showing mock data]",
         });
         return;
       }
 
       // Determine what audio to transcribe
-      let requestBody: { audio?: string; useTestAudio?: boolean };
-
-      if (recordedAudioBase64) {
-        // Use the recorded audio from microphone
-        requestBody = { audio: recordedAudioBase64 };
-      } else {
-        // Fall back to test audio from GPU
-        requestBody = { useTestAudio: true };
+      if (!recordedAudioBase64) {
+        console.warn("No recorded audio, using mock");
+        setTranscription({
+          ...mockTranscription,
+          text: "[No audio recorded - showing mock data]",
+        });
+        return;
       }
 
-      const transcribeRes = await fetch("/api/transcribe", {
+      // Use VoxFormer for transcription
+      const transcribeRes = await fetch(`${API_URL}/api/voxformer/transcribe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({ audio: recordedAudioBase64 }),
       });
 
-      if (transcribeRes.ok) {
-        const result = await transcribeRes.json();
+      const result = await transcribeRes.json();
+
+      if (transcribeRes.ok && result.text) {
         // Map API words format to component format
-        const words = (result.words || []).map((w: { word: string; confidence: number }, i: number) => ({
-          word: w.word,
-          confidence: w.confidence / 100, // API returns 0-100, component expects 0-1
-          start: i * 0.1, // Approximate timing
+        const words = (result.words || result.tokens || []).map((w: { word?: string; confidence?: number } | number, i: number) => ({
+          word: typeof w === 'object' ? w.word : String(w),
+          confidence: typeof w === 'object' && w.confidence ? w.confidence / 100 : 0.9,
+          start: i * 0.1,
           end: (i + 1) * 0.1,
         }));
         setTranscription({
-          text: result.transcription || "[No transcription]",
+          text: result.text || result.transcription || "[No transcription]",
           words: words,
-          duration: result.processing_time_sec || result.audio_duration_sec || 0,
+          duration: result.timing?.total_ms ? result.timing.total_ms / 1000 : (result.processing_time_sec || 0),
           rtf: result.real_time_factor || 0.1,
-          ctcText: result.decoder_transcription,
-          decoderText: result.decoder_transcription,
-          stage: result.stage || 1,
-          note: result.note,
+          ctcText: result.text,
+          decoderText: result.text,
+          stage: 2, // Stage 2 VoxFormer
+          note: `GPU: ${result.device || 'unknown'}, Confidence: ${(result.confidence * 100).toFixed(1)}%`,
         });
       } else {
-        const error = await transcribeRes.json();
-        console.error("Transcription error:", error);
+        console.error("Transcription error:", result);
         setTranscription({
           ...mockTranscription,
-          text: `[Error: ${error.error || "Unknown error"}]`,
+          text: `[Error: ${result.error || "Transcription failed"}]`,
+          note: result.message || undefined,
         });
       }
     } catch (error) {

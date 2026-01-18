@@ -180,7 +180,7 @@ export default function FullDemoPage() {
     const endpoint =
       sttEngine === "whisper"
         ? `${API_URL}/api/gpu/stt`
-        : `${API_URL}/api/transcribe`;
+        : `${API_URL}/api/voxformer/transcribe`;  // VoxFormer as secondary option
 
     const body =
       sttEngine === "whisper"

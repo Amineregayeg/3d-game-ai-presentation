@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Volume2, VolumeX, SkipForward } from "lucide-react";
+import { X, Volume2, VolumeX, SkipForward, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface GreetingPlayerProps {
@@ -55,6 +55,14 @@ export function GreetingPlayer({
     }
   };
 
+  const handleReload = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+    setHasError(false);
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -84,8 +92,18 @@ export function GreetingPlayer({
                   <Button
                     variant="ghost"
                     size="icon"
+                    onClick={handleReload}
+                    className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10"
+                    title="Replay"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={toggleMute}
                     className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10"
+                    title={isMuted ? "Unmute" : "Mute"}
                   >
                     {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                   </Button>
@@ -94,6 +112,7 @@ export function GreetingPlayer({
                     size="icon"
                     onClick={handleSkip}
                     className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10"
+                    title="Close"
                   >
                     <X className="w-4 h-4" />
                   </Button>

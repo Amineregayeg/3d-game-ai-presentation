@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AASP MVP Strategy - Detailed Analysis</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a24;
+            --bg-card: #16161e;
+            --border-color: #2a2a3a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #707080;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+
+        header p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Strategy Section */
+        .strategy-section {
+            margin-bottom: 80px;
+        }
+
+        .strategy-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .strategy-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .strategy-1 .strategy-number {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+        }
+
+        .strategy-2 .strategy-number {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+        }
+
+        .strategy-title h2 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .strategy-title p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Diagram Container */
+        .diagram-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+
+        .diagram-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .diagram-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--accent-blue);
+            border-radius: 2px;
+        }
+
+        /* Architecture Diagram */
+        .architecture-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 800px;
+        }
+
+        .arch-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+        }
+
+        .arch-box {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px 30px;
+            text-align: center;
+            min-width: 180px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .arch-box:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
+        }
+
+        .arch-box.primary {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15));
+            border-color: var(--accent-blue);
+        }
+
+        .arch-box.secondary {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15));
+            border-color: var(--accent-green);
+        }
+
+        .arch-box h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .arch-box p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .arch-box .icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        /* Arrow connectors */
+        .connector {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .connector svg {
+            width: 40px;
+            height: 40px;
+            color: var(--accent-blue);
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            min-width: 900px;
+            padding: 20px 0;
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .flow-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            border: 2px solid var(--border-color);
+            background: var(--bg-tertiary);
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover .flow-icon {
+            transform: scale(1.1);
+            border-color: var(--accent-blue);
+        }
+
+        .flow-step.allow .flow-icon {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border-color: var(--accent-green);
+        }
+
+        .flow-step.block .flow-icon {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            border-color: var(--accent-red);
+        }
+
+        .flow-step.approval .flow-icon {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            border-color: var(--accent-orange);
+        }
+
+        .flow-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 120px;
+        }
+
+        .flow-arrow {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .card-icon.blue { background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1)); }
+        .card-icon.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1)); }
+        .card-icon.purple { background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)); }
+        .card-icon.orange { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1)); }
+        .card-icon.cyan { background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(6, 182, 212, 0.1)); }
+        .card-icon.red { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1)); }
+
+        .card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+        }
+
+        .card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .card li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card li:last-child {
+            border-bottom: none;
+        }
+
+        .card li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-blue);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+            margin: 40px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 30px;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -33px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            border: 3px solid var(--bg-primary);
+        }
+
+        .timeline-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .timeline-content h4 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--accent-blue);
+        }
+
+        .timeline-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Integration Table */
+        .integration-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .integration-table th,
+        .integration-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .integration-table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .integration-table td {
+            color: var(--text-secondary);
+        }
+
+        .integration-table tr:hover td {
+            background: var(--bg-tertiary);
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .priority-badge.p0 {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .priority-badge.p1 {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-orange);
+        }
+
+        .priority-badge.p2 {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+
+        .code-block .comment {
+            color: var(--text-muted);
+        }
+
+        .code-block .keyword {
+            color: var(--accent-purple);
+        }
+
+        .code-block .string {
+            color: var(--accent-green);
+        }
+
+        .code-block .function {
+            color: var(--accent-blue);
+        }
+
+        /* Comparison Section */
+        .comparison-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 60px 0;
+        }
+
+        .comparison-section h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-column {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .comparison-column h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--accent-blue);
+        }
+
+        .comparison-column.strategy-2-col h3 {
+            border-bottom-color: var(--accent-purple);
+        }
+
+        /* Recommendation */
+        .recommendation {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 2px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 60px 0;
+            text-align: center;
+        }
+
+        .recommendation h2 {
+            font-size: 1.75rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .recommendation p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        .recommendation-steps {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .rec-step {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px 30px;
+            min-width: 200px;
+        }
+
+        .rec-step h4 {
+            color: var(--accent-blue);
+            margin-bottom: 8px;
+        }
+
+        .rec-step p {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        /* Decision flow SVG styles */
+        .decision-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .decision-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .decision-box {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 24px;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .decision-diamond {
+            width: 150px;
+            height: 150px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--accent-orange);
+            transform: rotate(45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .decision-diamond span {
+            transform: rotate(-45deg);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .branches {
+            display: flex;
+            gap: 60px;
+            margin-top: 20px;
+        }
+
+        .branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .branch-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            padding: 4px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        .result-allow {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .result-block {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .result-approval {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            border-color: var(--accent-orange);
+            color: var(--accent-orange);
+        }
+
+        /* Vertical connector */
+        .v-connector {
+            width: 2px;
+            height: 30px;
+            background: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>AASP MVP Strategy</h1>
+            <p>Two strategic approaches to bring AI Agent Security Platform to market</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Strategy 1: MCP Protocol First -->
+        <section class="strategy-section strategy-1">
+            <div class="strategy-header">
+                <div class="strategy-number">1</div>
+                <div class="strategy-title">
+                    <h2>MCP Protocol First</h2>
+                    <p>"Become the security standard for MCP before alternatives emerge"</p>
+                </div>
+            </div>
+
+            <!-- Key Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">6-8</div>
+                    <div class="stat-label">Weeks to Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$30-50K</div>
+                    <div class="stat-label">Initial Investment</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">2-3</div>
+                    <div class="stat-label">Team Members</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Direct Competitors</div>
+                </div>
+            </div>
+
+            <!-- Architecture Diagram -->
+            <div class="diagram-container">
+                <div class="diagram-title">MCP Proxy Architecture</div>
+                <div class="architecture-diagram">
+                    <div class="arch-row">
+                        <div class="arch-box">
+                            <div class="icon">🖥️</div>
+                            <h4>Claude Desktop</h4>
+                            <p>User's AI Assistant</p>
+                        </div>
+                        <div class="arch-box">
+                            <div class="icon">⌨️</div>
+                            <h4>Cursor IDE</h4>
+                            <p>AI Code Editor</p>
+                        </div>
+                        <div class="arch-box">
+                            <div class="icon">🌊</div>
+                            <h4>Windsurf</h4>
+                            <p>AI Development</p>
+                        </div>
+                    </div>
+
+                    <div class="connector">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12l7 7 7-7"/>
+                        </svg>
+                    </div>
+
+                    <div class="arch-row">
+                        <div class="arch-box primary" style="min-width: 400px;">
+                            <div class="icon">🛡️</div>
+                            <h4>AASP MCP Proxy</h4>
+                            <p>Intercepts all MCP tool calls via stdio/SSE transport</p>
+                        </div>
+                    </div>
+
+                    <div class="connector">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12l7 7 7-7"/>
+                        </svg>
+                    </div>
+
+                    <div class="arch-row">
+                        <div class="arch-box secondary">
+                            <div class="icon">📋</div>
+                            <h4>Policy Engine</h4>
+                            <p>Rule evaluation</p>
+                        </div>
+                        <div class="arch-box secondary">
+                            <div class="icon">📝</div>
+                            <h4>Audit Log</h4>
+                            <p>Action history</p>
+                        </div>
+                        <div class="arch-box secondary">
+                            <div class="icon">👥</div>
+                            <h4>Approval Queue</h4>
+                            <p>Human-in-loop</p>
+                        </div>
+                    </div>
+
+                    <div class="connector">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12l7 7 7-7"/>
+                        </svg>
+                    </div>
+
+                    <div class="arch-row">
+                        <div class="arch-box">
+                            <div class="icon">📁</div>
+                            <h4>Filesystem</h4>
+                            <p>MCP Server</p>
+                        </div>
+                        <div class="arch-box">
+                            <div class="icon">🗄️</div>
+                            <h4>Database</h4>
+                            <p>MCP Server</p>
+                        </div>
+                        <div class="arch-box">
+                            <div class="icon">🔗</div>
+                            <h4>GitHub</h4>
+                            <p>MCP Server</p>
+                        </div>
+                        <div class="arch-box">
+                            <div class="icon">🌐</div>
+                            <h4>Web/APIs</h4>
+                            <p>MCP Server</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Flow -->
+            <div class="diagram-container">
+                <div class="diagram-title">Policy Evaluation Flow</div>
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <div class="flow-icon">🤖</div>
+                        <div class="flow-label">Agent requests tool call</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">📥</div>
+                        <div class="flow-label">AASP intercepts request</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">⚖️</div>
+                        <div class="flow-label">Evaluate against policies</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step allow">
+                        <div class="flow-icon">✅</div>
+                        <div class="flow-label">Allow</div>
+                    </div>
+                    <div class="flow-step block">
+                        <div class="flow-icon">🚫</div>
+                        <div class="flow-label">Block</div>
+                    </div>
+                    <div class="flow-step approval">
+                        <div class="flow-icon">⏳</div>
+                        <div class="flow-label">Require Approval</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Why MCP First -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon blue">🏢</div>
+                        <h3>Anthropic's Backing</h3>
+                    </div>
+                    <p>MCP is positioned as the "USB for AI agents" - a universal protocol backed by a major AI company.</p>
+                    <ul>
+                        <li>Official Anthropic protocol</li>
+                        <li>Growing ecosystem rapidly</li>
+                        <li>Enterprise-ready design</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon green">🎯</div>
+                        <h3>Zero Competition</h3>
+                    </div>
+                    <p>No security solutions exist for MCP today. First-mover advantage is significant.</p>
+                    <ul>
+                        <li>Define the category</li>
+                        <li>Set security standards</li>
+                        <li>Build brand recognition early</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon purple">🔌</div>
+                        <h3>Protocol-Level Access</h3>
+                    </div>
+                    <p>MCP's transport layer allows deep inspection of all tool calls and responses.</p>
+                    <ul>
+                        <li>stdio and SSE interception</li>
+                        <li>Full payload visibility</li>
+                        <li>Transparent to end users</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon orange">📈</div>
+                        <h3>Growing Ecosystem</h3>
+                    </div>
+                    <p>Major developer tools are rapidly adopting MCP as the standard.</p>
+                    <ul>
+                        <li>Claude Desktop (millions of users)</li>
+                        <li>Cursor IDE</li>
+                        <li>Windsurf, Zed, and more</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Target Integrations -->
+            <div class="diagram-container">
+                <div class="diagram-title">Target Systems & Integrations</div>
+                <table class="integration-table">
+                    <thead>
+                        <tr>
+                            <th>System</th>
+                            <th>Priority</th>
+                            <th>Risk Profile</th>
+                            <th>Integration Method</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Claude Desktop</strong></td>
+                            <td><span class="priority-badge p0">P0</span></td>
+                            <td>Primary MCP host, millions of users</td>
+                            <td>stdio proxy configuration</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cursor IDE</strong></td>
+                            <td><span class="priority-badge p0">P0</span></td>
+                            <td>Developer-first, code access</td>
+                            <td>MCP config override</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Filesystem MCP</strong></td>
+                            <td><span class="priority-badge p1">P1</span></td>
+                            <td>Data exfiltration risk</td>
+                            <td>Tool call interception</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PostgreSQL/SQLite MCP</strong></td>
+                            <td><span class="priority-badge p1">P1</span></td>
+                            <td>Database access, queries</td>
+                            <td>Query parsing + policies</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GitHub MCP</strong></td>
+                            <td><span class="priority-badge p1">P1</span></td>
+                            <td>Code repository access</td>
+                            <td>Action-level policies</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Slack</strong></td>
+                            <td><span class="priority-badge p1">P1</span></td>
+                            <td>Approval notifications</td>
+                            <td>Bot + webhooks</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Puppeteer MCP</strong></td>
+                            <td><span class="priority-badge p2">P2</span></td>
+                            <td>Web automation, scraping</td>
+                            <td>URL allowlisting</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Implementation Timeline -->
+            <div class="diagram-container">
+                <div class="diagram-title">Implementation Phases</div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <h4>Phase 1: MCP Proxy (Weeks 1-4)</h4>
+                            <p>Build core proxy for stdio/SSE transport. Implement basic policy engine with JSON rules. Create SQLite audit log with search. Ship CLI for policy management.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <h4>Phase 2: Policies & Approvals (Weeks 5-8)</h4>
+                            <p>Visual policy builder web UI. Slack/Teams integration for approvals. Rate limiting per tool/agent. Pattern-based blocking with regex. Time-based policies.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <h4>Phase 3: Enterprise Features (Weeks 9-12)</h4>
+                            <p>SSO integration (Okta, Azure AD). Role-based access control. Compliance reporting templates. Multi-tenant support. Self-hosted deployment option.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Go-to-Market -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon cyan">💰</div>
+                        <h3>Pricing Model</h3>
+                    </div>
+                    <ul>
+                        <li><strong>Free:</strong> 1K actions/mo, basic policies</li>
+                        <li><strong>Pro ($29/user):</strong> Unlimited, Slack approvals</li>
+                        <li><strong>Team ($99/user):</strong> SSO, compliance reports</li>
+                        <li><strong>Enterprise:</strong> Custom, self-hosted</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon green">📢</div>
+                        <h3>Distribution Channels</h3>
+                    </div>
+                    <ul>
+                        <li>Anthropic MCP Registry listing</li>
+                        <li>Developer communities (Discord, Reddit)</li>
+                        <li>Content marketing & tutorials</li>
+                        <li>Conference talks (AI Engineer Summit)</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon purple">🎯</div>
+                        <h3>Target Customer</h3>
+                    </div>
+                    <p>Individual developers and small teams using Claude Desktop for productivity.</p>
+                    <ul>
+                        <li>Early adopters of AI tools</li>
+                        <li>Security-conscious developers</li>
+                        <li>Teams with compliance needs</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon orange">📊</div>
+                        <h3>Success Metrics</h3>
+                    </div>
+                    <ul>
+                        <li>500 free users in month 1</li>
+                        <li>50 paid conversions by month 3</li>
+                        <li>5 enterprise pilots by month 4</li>
+                        <li>$10K MRR by month 6</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Strategy 2: LangChain Ecosystem First -->
+        <section class="strategy-section strategy-2">
+            <div class="strategy-header">
+                <div class="strategy-number">2</div>
+                <div class="strategy-title">
+                    <h2>LangChain Ecosystem First</h2>
+                    <p>"Capture the largest AI agent developer community with drop-in security"</p>
+                </div>
+            </div>
+
+            <!-- Key Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">8-10</div>
+                    <div class="stat-label">Weeks to Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$50-80K</div>
+                    <div class="stat-label">Initial Investment</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3-4</div>
+                    <div class="stat-label">Team Members</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">500K+</div>
+                    <div class="stat-label">Developer TAM</div>
+                </div>
+            </div>
+
+            <!-- Code Integration -->
+            <div class="diagram-container">
+                <div class="diagram-title">One-Line Integration</div>
+                <div class="code-block">
+                    <pre><span class="comment"># Before: Unprotected LangChain agent</span>
+<span class="keyword">from</span> langchain.agents <span class="keyword">import</span> AgentExecutor
+
+agent = <span class="function">AgentExecutor</span>(
+    agent=my_agent,
+    tools=my_tools
+)
+
+<span class="comment"># After: Protected with AASP (one line change)</span>
+<span class="keyword">from</span> langchain.agents <span class="keyword">import</span> AgentExecutor
+<span class="keyword">from</span> aasp <span class="keyword">import</span> AASPCallback  <span class="comment"># pip install aasp</span>
+
+agent = <span class="function">AgentExecutor</span>(
+    agent=my_agent,
+    tools=my_tools,
+    callbacks=[<span class="function">AASPCallback</span>(api_key=<span class="string">"aasp_xxx"</span>)]  <span class="comment"># That's it!</span>
+)</pre>
+                </div>
+            </div>
+
+            <!-- Architecture Diagram -->
+            <div class="diagram-container">
+                <div class="diagram-title">SDK Architecture</div>
+                <div class="architecture-diagram">
+                    <div class="arch-row">
+                        <div class="arch-box">
+                            <div class="icon">🐍</div>
+                            <h4>Your Python App</h4>
+                            <p>LangChain Agent</p>
+                        </div>
+                    </div>
+
+                    <div class="connector">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12l7 7 7-7"/>
+                        </svg>
+                    </div>
+
+                    <div class="arch-row">
+                        <div class="arch-box primary" style="min-width: 350px;">
+                            <div class="icon">📦</div>
+                            <h4>AASP Python SDK</h4>
+                            <p>LangChain Callback Handler</p>
+                        </div>
+                    </div>
+
+                    <div class="connector">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12l7 7 7-7"/>
+                        </svg>
+                    </div>
+
+                    <div class="arch-row">
+                        <div class="arch-box secondary" style="min-width: 500px;">
+                            <div class="icon">☁️</div>
+                            <h4>AASP Cloud Platform</h4>
+                            <p>Policy Engine • Audit Log • Dashboard • Approvals</p>
+                        </div>
+                    </div>
+
+                    <div class="connector">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12l7 7 7-7"/>
+                        </svg>
+                    </div>
+
+                    <div class="arch-row">
+                        <div class="arch-box">
+                            <div class="icon">💬</div>
+                            <h4>Slack</h4>
+                            <p>Approvals</p>
+                        </div>
+                        <div class="arch-box">
+                            <div class="icon">📊</div>
+                            <h4>Datadog</h4>
+                            <p>Export</p>
+                        </div>
+                        <div class="arch-box">
+                            <div class="icon">🔐</div>
+                            <h4>Okta/Azure AD</h4>
+                            <p>SSO</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Why LangChain First -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon blue">👥</div>
+                        <h3>Massive Adoption</h3>
+                    </div>
+                    <p>LangChain is the dominant framework with the largest developer community.</p>
+                    <ul>
+                        <li>500K+ active developers</li>
+                        <li>80K+ GitHub stars</li>
+                        <li>Default for production agents</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon green">🔗</div>
+                        <h3>Native Callback System</h3>
+                    </div>
+                    <p>LangChain's callback architecture provides perfect hooks for security.</p>
+                    <ul>
+                        <li>on_tool_start interceptor</li>
+                        <li>on_tool_end logging</li>
+                        <li>Async support built-in</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon purple">🎯</div>
+                        <h3>Clear Pain Point</h3>
+                    </div>
+                    <p>Developers know they need guardrails but have limited options.</p>
+                    <ul>
+                        <li>"How do I prevent SQL injection?"</li>
+                        <li>"Can I limit API spend?"</li>
+                        <li>"Who approved this action?"</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon orange">🌐</div>
+                        <h3>Multi-LLM Support</h3>
+                    </div>
+                    <p>LangChain works with all major LLM providers, expanding reach.</p>
+                    <ul>
+                        <li>OpenAI (GPT-4, o1)</li>
+                        <li>Anthropic (Claude)</li>
+                        <li>Google (Gemini)</li>
+                        <li>Local models (Ollama)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Framework Expansion -->
+            <div class="diagram-container">
+                <div class="diagram-title">Framework Coverage Roadmap</div>
+                <div class="flow-diagram" style="justify-content: space-around;">
+                    <div class="flow-step">
+                        <div class="flow-icon" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(59, 130, 246, 0.1)); border-color: var(--accent-blue);">🦜</div>
+                        <div class="flow-label"><strong>LangChain</strong><br>Phase 1</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-icon" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(139, 92, 246, 0.1)); border-color: var(--accent-purple);">👥</div>
+                        <div class="flow-label"><strong>CrewAI</strong><br>Phase 2</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.1)); border-color: var(--accent-green);">🤖</div>
+                        <div class="flow-label"><strong>AutoGen</strong><br>Phase 2</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(245, 158, 11, 0.1)); border-color: var(--accent-orange);">🦙</div>
+                        <div class="flow-label"><strong>LlamaIndex</strong><br>Phase 3</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-icon" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.3), rgba(6, 182, 212, 0.1)); border-color: var(--accent-cyan);">⚡</div>
+                        <div class="flow-label"><strong>Custom SDK</strong><br>Phase 3</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Integrations -->
+            <div class="diagram-container">
+                <div class="diagram-title">Target Systems & Integrations</div>
+                <table class="integration-table">
+                    <thead>
+                        <tr>
+                            <th>System</th>
+                            <th>Priority</th>
+                            <th>Use Case</th>
+                            <th>Integration Method</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>LangChain</strong></td>
+                            <td><span class="priority-badge p0">P0</span></td>
+                            <td>Primary framework, largest community</td>
+                            <td>Python callback handler</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LangSmith</strong></td>
+                            <td><span class="priority-badge p1">P1</span></td>
+                            <td>Complement their observability</td>
+                            <td>Trace correlation</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CrewAI</strong></td>
+                            <td><span class="priority-badge p1">P1</span></td>
+                            <td>Multi-agent = more risk</td>
+                            <td>Agent decorator</td>
+                        </tr>
+                        <tr>
+                            <td><strong>OpenAI Assistants</strong></td>
+                            <td><span class="priority-badge p1">P1</span></td>
+                            <td>Growing enterprise adoption</td>
+                            <td>Function call wrapper</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pinecone/Weaviate</strong></td>
+                            <td><span class="priority-badge p2">P2</span></td>
+                            <td>RAG pipeline protection</td>
+                            <td>Query interception</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Datadog/Splunk</strong></td>
+                            <td><span class="priority-badge p2">P2</span></td>
+                            <td>Export to existing SIEM</td>
+                            <td>OpenTelemetry export</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Implementation Timeline -->
+            <div class="diagram-container">
+                <div class="diagram-title">Implementation Phases</div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <h4>Phase 1: LangChain SDK (Weeks 1-4)</h4>
+                            <p>Python SDK with callback handler (pip install aasp). Cloud dashboard for policy management. Action log with search and filter. Basic policies: allow/block by tool name.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <h4>Phase 2: Advanced Policies (Weeks 5-8)</h4>
+                            <p>Parameter-level policies (e.g., block SQL DELETE). Agent identity binding. Human-in-the-loop via SDK callback. Rate limiting and quotas. Anomaly detection for unusual patterns.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <h4>Phase 3: Framework Expansion (Weeks 9-12)</h4>
+                            <p>CrewAI integration for multi-agent. AutoGen support. LlamaIndex integration. Framework-agnostic custom SDK. OpenTelemetry export for existing observability tools.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Go-to-Market -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon cyan">💰</div>
+                        <h3>Pricing Model</h3>
+                    </div>
+                    <ul>
+                        <li><strong>Free:</strong> 10K actions/mo, 3 policies</li>
+                        <li><strong>Startup ($199/mo):</strong> 100K actions</li>
+                        <li><strong>Growth ($499/mo):</strong> 500K, SSO</li>
+                        <li><strong>Enterprise:</strong> Unlimited, SLA</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon green">📢</div>
+                        <h3>Distribution Channels</h3>
+                    </div>
+                    <ul>
+                        <li>PyPI package (pip install aasp)</li>
+                        <li>LangChain docs partnership</li>
+                        <li>YouTube tutorials & demos</li>
+                        <li>AI/ML meetup workshops</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon purple">🎯</div>
+                        <h3>Target Customer</h3>
+                    </div>
+                    <p>Teams building production AI agents who need security controls.</p>
+                    <ul>
+                        <li>Startups with AI products</li>
+                        <li>Enterprise AI teams</li>
+                        <li>Consultancies building agents</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon orange">📊</div>
+                        <h3>Success Metrics</h3>
+                    </div>
+                    <ul>
+                        <li>1,000 SDK installs month 1</li>
+                        <li>200 active users month 2</li>
+                        <li>20 paid teams month 3</li>
+                        <li>$25K MRR by month 6</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section class="comparison-section">
+            <h2>Strategy Comparison</h2>
+            <div class="comparison-grid">
+                <div class="comparison-column">
+                    <h3>MCP Protocol First</h3>
+                    <table class="integration-table">
+                        <tr>
+                            <td>Time to Revenue</td>
+                            <td><strong>6-8 weeks</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Investment</td>
+                            <td><strong>$30-50K</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Team Size</td>
+                            <td><strong>2-3 people</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Competition</td>
+                            <td><strong style="color: var(--accent-green);">None</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Market Size</td>
+                            <td><strong>$500M (growing)</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Sales Model</td>
+                            <td><strong>Self-serve PLG</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Defensibility</td>
+                            <td><strong>First-mover + protocol</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Funding Required</td>
+                            <td><strong style="color: var(--accent-green);">Bootstrappable</strong></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="comparison-column strategy-2-col">
+                    <h3>LangChain Ecosystem First</h3>
+                    <table class="integration-table">
+                        <tr>
+                            <td>Time to Revenue</td>
+                            <td><strong>8-10 weeks</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Investment</td>
+                            <td><strong>$50-80K</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Team Size</td>
+                            <td><strong>3-4 people</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Competition</td>
+                            <td><strong style="color: var(--accent-orange);">Medium</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Market Size</td>
+                            <td><strong>$2B</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Sales Model</td>
+                            <td><strong>PLG + Sales</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Defensibility</td>
+                            <td><strong>Dev community + ecosystem</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Funding Required</td>
+                            <td><strong>Seed ($500K-1M)</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommendation -->
+        <section class="recommendation">
+            <h2>Recommended Hybrid Approach</h2>
+            <p>Start with MCP to validate quickly with minimal investment, then expand to LangChain to capture the larger market. Each phase funds the next.</p>
+
+            <div class="recommendation-steps">
+                <div class="rec-step">
+                    <h4>Month 1-3</h4>
+                    <p>MCP Proxy MVP<br><small style="color: var(--text-muted);">Validate + Early Revenue</small></p>
+                </div>
+                <div class="rec-step">
+                    <h4>Month 3-5</h4>
+                    <p>LangChain SDK<br><small style="color: var(--text-muted);">Expand Market 10x</small></p>
+                </div>
+                <div class="rec-step">
+                    <h4>Month 5-8</h4>
+                    <p>Compliance Layer<br><small style="color: var(--text-muted);">Enterprise Ready</small></p>
+                </div>
+                <div class="rec-step">
+                    <h4>Month 9-12</h4>
+                    <p>Scale + Series A<br><small style="color: var(--text-muted);">Grow Team & Sales</small></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Value Proposition -->
+        <div class="diagram-container">
+            <div class="diagram-title">Why AASP Wins</div>
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon red">🛡️</div>
+                        <h3>Prevention, Not Detection</h3>
+                    </div>
+                    <p>Unlike observability tools, AASP blocks unauthorized actions <strong>before</strong> they execute. Real-time enforcement, not post-incident analysis.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon blue">⚖️</div>
+                        <h3>Explicit Rules, No ML</h3>
+                    </div>
+                    <p>Policies are transparent, predictable, and auditable. No black-box ML models. Enterprises can explain exactly why an action was blocked.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon orange">👤</div>
+                        <h3>Human-in-the-Loop</h3>
+                    </div>
+                    <p>High-risk actions can require human approval via Slack/Teams. Agents don't bypass human judgment on critical decisions.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon green">📋</div>
+                        <h3>Compliance Ready</h3>
+                    </div>
+                    <p>Immutable audit logs prove what AI agents did and why. Essential for SOC 2, HIPAA, GDPR, and internal governance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>AASP - AI Agent Security Platform | Strategy Document v1.0 | December 2024</p>
+        </div>
+    </footer>
+</body>
+</html>

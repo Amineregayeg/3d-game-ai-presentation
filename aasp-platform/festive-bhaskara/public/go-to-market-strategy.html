@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AASP Go-To-Market Strategy - Clients First, Then Raise</title>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --accent-blue: #2563eb;
+            --accent-blue-light: #3b82f6;
+            --accent-purple: #7c3aed;
+            --accent-green: #059669;
+            --accent-green-light: #10b981;
+            --accent-orange: #d97706;
+            --accent-red: #dc2626;
+            --accent-cyan: #0891b2;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            padding: 60px 24px;
+            text-align: center;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .section-number {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .section-title h2 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .section-title p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-strong);
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3 .icon {
+            font-size: 1.4rem;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        /* Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .timeline-marker {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--accent-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--accent-blue);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-item:not(:last-child) .timeline-marker::after {
+            content: '';
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: calc(100% + 24px);
+            background: var(--border-color);
+            z-index: 0;
+        }
+
+        .timeline-content {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .timeline-content h4 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--accent-blue);
+        }
+
+        .timeline-content p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Flow Diagram */
+        .flow-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+        }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-width: 700px;
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 1;
+        }
+
+        .flow-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .flow-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            max-width: 120px;
+        }
+
+        .flow-label strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .flow-arrow {
+            font-size: 1.5rem;
+            color: var(--accent-blue);
+            flex-shrink: 0;
+        }
+
+        /* Stats */
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Table */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .tag-blue {
+            background: #dbeafe;
+            color: var(--accent-blue);
+        }
+
+        .tag-green {
+            background: #d1fae5;
+            color: var(--accent-green);
+        }
+
+        .tag-orange {
+            background: #fef3c7;
+            color: var(--accent-orange);
+        }
+
+        .tag-purple {
+            background: #ede9fe;
+            color: var(--accent-purple);
+        }
+
+        .tag-red {
+            background: #fee2e2;
+            color: var(--accent-red);
+        }
+
+        /* Highlight Box */
+        .highlight-box {
+            background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+            border: 2px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 32px 0;
+            text-align: center;
+        }
+
+        .highlight-box h3 {
+            font-size: 1.5rem;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+        }
+
+        .highlight-box p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 24px;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        .code-block .comment { color: #64748b; }
+        .code-block .keyword { color: #c084fc; }
+        .code-block .string { color: #4ade80; }
+        .code-block .function { color: #60a5fa; }
+
+        /* Comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .comparison-card.good {
+            border-color: var(--accent-green);
+        }
+
+        .comparison-card.bad {
+            border-color: var(--accent-red);
+        }
+
+        .comparison-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .comparison-card.good h4 { color: var(--accent-green); }
+        .comparison-card.bad h4 { color: var(--accent-red); }
+
+        .comparison-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .comparison-card p::before {
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .comparison-card.good p::before {
+            content: '✓';
+            color: var(--accent-green);
+        }
+
+        .comparison-card.bad p::before {
+            content: '✗';
+            color: var(--accent-red);
+        }
+
+        /* Week Plan */
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .week-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .week-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .week-card .week-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .week-badge {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .week-card h4 {
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .week-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Channels List */
+        .channel-list {
+            list-style: none;
+        }
+
+        .channel-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .channel-list li:last-child {
+            border-bottom: none;
+        }
+
+        .channel-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .channel-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .channel-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .channel-action {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .channel-result {
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+
+        /* Bottom Line */
+        .bottom-line {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-blue);
+            border-radius: 16px;
+            padding: 32px;
+            margin-top: 48px;
+        }
+
+        .bottom-line h3 {
+            font-size: 1.3rem;
+            color: var(--accent-blue);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .bottom-line-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .bottom-line-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .bottom-line-item {
+            text-align: center;
+        }
+
+        .bottom-line-item .question {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .bottom-line-item .answer {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            margin-top: 48px;
+        }
+
+        /* Alert */
+        .alert {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .alert-content h4 {
+            color: var(--accent-orange);
+            margin-bottom: 8px;
+        }
+
+        .alert-content p {
+            color: #92400e;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        /* Quote */
+        .quote {
+            background: var(--bg-tertiary);
+            border-left: 4px solid var(--accent-blue);
+            padding: 20px 24px;
+            margin: 24px 0;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .quote p {
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .quote .author {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-style: normal;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Go-To-Market Strategy</h1>
+        <p>Clients First, Then Raise - A 10-Week Playbook for 2 Engineers</p>
+        <div class="badge">AASP - AI Agent Security Platform</div>
+    </header>
+
+    <div class="container">
+        <!-- The Answer -->
+        <div class="highlight-box">
+            <h3>The Answer: Clients First (Lightweight)</h3>
+            <p>You don't need 50 customers. You need 3-5 proof points. Get minimal traction, then raise with leverage.</p>
+        </div>
+
+        <!-- The Sequence -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">1</div>
+                <div class="section-title">
+                    <h2>The Right Sequence</h2>
+                    <p>Build momentum before asking for money</p>
+                </div>
+            </div>
+
+            <div class="flow-container">
+                <div class="flow">
+                    <div class="flow-step">
+                        <div class="flow-icon">🔨</div>
+                        <div class="flow-label">
+                            <strong>Week 1-4</strong>
+                            Build LangChain SDK MVP
+                        </div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">👥</div>
+                        <div class="flow-label">
+                            <strong>Week 4-6</strong>
+                            Get 10-20 beta signups
+                        </div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">💰</div>
+                        <div class="flow-label">
+                            <strong>Week 6-10</strong>
+                            Convert 3-5 to paid
+                        </div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">🚀</div>
+                        <div class="flow-label">
+                            <strong>Week 8-12</strong>
+                            Raise with traction
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why Clients First -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">2</div>
+                <div class="section-title">
+                    <h2>Why Clients First?</h2>
+                    <p>Traction changes everything</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Factor</th>
+                            <th>Explanation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Investor Leverage</strong></td>
+                            <td>"We have 5 paying customers" beats "We have an idea" every time</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Better Valuation</strong></td>
+                            <td>Pre-revenue: $2-4M. With $5K MRR: $5-8M. Same effort, 2x outcome.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Product Learning</strong></td>
+                            <td>Real users tell you what to build. Assumptions don't.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>YC Loves Traction</strong></td>
+                            <td>Their top filter is "do people want this?" Customers = yes.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Credibility</strong></td>
+                            <td>"Gusto uses Runlayer" is their moat. Get your own logos early.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Comparison -->
+            <div class="comparison">
+                <div class="comparison-card bad">
+                    <h4>❌ Without Clients</h4>
+                    <p>"We're building AI agent security for LangChain."</p>
+                    <p>Investor: "How do you know people want this?"</p>
+                    <p>You: "Well, there are vulnerabilities..."</p>
+                    <p>Investor: "Let me know when you have traction."</p>
+                </div>
+                <div class="comparison-card good">
+                    <h4>✓ With 3-5 Clients</h4>
+                    <p>"We launched 6 weeks ago and have 5 companies using us."</p>
+                    <p>"[Company X] is paying $199/month already."</p>
+                    <p>"Our design partner is integrating us into production."</p>
+                    <p>Investor: "Tell me more. What's your raise?"</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Week by Week -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">3</div>
+                <div class="section-title">
+                    <h2>Week-by-Week Execution</h2>
+                    <p>What to do each week</p>
+                </div>
+            </div>
+
+            <!-- Phase 1 -->
+            <div class="card">
+                <h3><span class="icon">🔨</span> Phase 1: Build MVP (Weeks 1-4)</h3>
+                <p>Ship a working product that developers can install and use immediately.</p>
+
+                <div class="code-block">
+                    <pre><span class="comment"># This is all you need to ship</span>
+<span class="keyword">from</span> aasp <span class="keyword">import</span> AASPCallback
+
+agent = <span class="function">AgentExecutor</span>(
+    agent=my_agent,
+    tools=my_tools,
+    callbacks=[<span class="function">AASPCallback</span>(api_key=<span class="string">"aasp_xxx"</span>)]  <span class="comment"># One line!</span>
+)</pre>
+                </div>
+
+                <div class="grid-3">
+                    <div class="stat-card">
+                        <div class="stat-value">SDK</div>
+                        <div class="stat-label">pip install aasp</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">Dashboard</div>
+                        <div class="stat-label">Policies + Action Log</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">3 Policies</div>
+                        <div class="stat-label">Rate Limit, SQL Block, PII</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="card">
+                <h3><span class="icon">👥</span> Phase 2: Get Beta Users (Weeks 4-6)</h3>
+                <p>This is developer community hustle, not enterprise sales. Target: 15-20 signups.</p>
+
+                <ul class="channel-list">
+                    <li>
+                        <div class="channel-info">
+                            <div class="channel-icon">💬</div>
+                            <div>
+                                <div class="channel-name">LangChain Discord</div>
+                                <div class="channel-action">Post in #showcase, help in #support</div>
+                            </div>
+                        </div>
+                        <div class="channel-result">5-10 signups</div>
+                    </li>
+                    <li>
+                        <div class="channel-info">
+                            <div class="channel-icon">🔗</div>
+                            <div>
+                                <div class="channel-name">r/LangChain</div>
+                                <div class="channel-action">Tutorial: "How I secured my agent in 5 min"</div>
+                            </div>
+                        </div>
+                        <div class="channel-result">3-5 signups</div>
+                    </li>
+                    <li>
+                        <div class="channel-info">
+                            <div class="channel-icon">🐦</div>
+                            <div>
+                                <div class="channel-name">Twitter/X</div>
+                                <div class="channel-action">Thread on AI agent security risks + solution</div>
+                            </div>
+                        </div>
+                        <div class="channel-result">5-10 signups</div>
+                    </li>
+                    <li>
+                        <div class="channel-info">
+                            <div class="channel-icon">✍️</div>
+                            <div>
+                                <div class="channel-name">Dev.to / Hashnode</div>
+                                <div class="channel-action">Technical blog post with code examples</div>
+                            </div>
+                        </div>
+                        <div class="channel-result">2-3 signups</div>
+                    </li>
+                    <li>
+                        <div class="channel-info">
+                            <div class="channel-icon">📧</div>
+                            <div>
+                                <div class="channel-name">Direct DMs</div>
+                                <div class="channel-action">Find LangChain projects on GitHub, DM founders</div>
+                            </div>
+                        </div>
+                        <div class="channel-result">3-5 signups</div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Phase 3 -->
+            <div class="card">
+                <h3><span class="icon">💰</span> Phase 3: Convert to Paid (Weeks 6-10)</h3>
+                <p>You don't need big contracts. You need proof. Target: 3-5 converted.</p>
+
+                <div class="table-container" style="margin-top: 20px; margin-bottom: 0;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tier</th>
+                                <th>What You Offer</th>
+                                <th>What You Get</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="tag tag-blue">Free Beta</span></td>
+                                <td>Full access, fast bug fixes</td>
+                                <td>Feedback, testimonials</td>
+                            </tr>
+                            <tr>
+                                <td><span class="tag tag-purple">Design Partner</span></td>
+                                <td>Free for 6 months, priority support</td>
+                                <td>Logo rights, case study, intros</td>
+                            </tr>
+                            <tr>
+                                <td><span class="tag tag-green">Early Paid</span></td>
+                                <td>$99-199/mo (80% discount)</td>
+                                <td>Revenue proof, commitment signal</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Parallel Track -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">4</div>
+                <div class="section-title">
+                    <h2>Parallel Track: Apply to YC</h2>
+                    <p>Don't wait for clients to apply. Do both.</p>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3><span class="icon">🔨</span> Track A: Build + Get Clients</h3>
+                    <div class="timeline" style="margin-top: 16px;">
+                        <div class="timeline-item">
+                            <div class="timeline-marker">1-4</div>
+                            <div class="timeline-content">
+                                <h4>Ship MVP</h4>
+                                <p>Working SDK + dashboard</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">4-6</div>
+                            <div class="timeline-content">
+                                <h4>Beta Users</h4>
+                                <p>15-20 signups from community</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">6-10</div>
+                            <div class="timeline-content">
+                                <h4>Convert</h4>
+                                <p>3-5 paying/design partners</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="icon">🚀</span> Track B: YC Application</h3>
+                    <div class="timeline" style="margin-top: 16px;">
+                        <div class="timeline-item">
+                            <div class="timeline-marker">Wk 1</div>
+                            <div class="timeline-content">
+                                <h4>Submit Application</h4>
+                                <p>Apply to YC W26 batch</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">4-6</div>
+                            <div class="timeline-content">
+                                <h4>Interview Invite</h4>
+                                <p>If selected for interview</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">6-8</div>
+                            <div class="timeline-content">
+                                <h4>Interview + Decision</h4>
+                                <p>By now you'll have clients!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quote">
+                <p>"By the time you interview for YC, you'll have paying customers. That's the best possible position to be in."</p>
+            </div>
+        </section>
+
+        <!-- What NOT To Do -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">5</div>
+                <div class="section-title">
+                    <h2>What NOT To Do</h2>
+                    <p>Common mistakes to avoid</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mistake</th>
+                            <th>Why It Fails</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="tag tag-red">Fundraise 3 months with no product</span></td>
+                            <td>VCs will say "come back with traction"</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag tag-red">Build "perfect" product for 6 months</span></td>
+                            <td>Runlayer captures the market while you polish</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag tag-red">Chase enterprise deals first</span></td>
+                            <td>6-month sales cycles, you'll run out of time/money</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag tag-red">Give equity to first customers</span></td>
+                            <td>Unnecessary - discounts are enough</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tag tag-red">Wait for YC decision before building</span></td>
+                            <td>Waste of 3 months you could use to get traction</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- The Math -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">6</div>
+                <div class="section-title">
+                    <h2>The Math</h2>
+                    <p>Why clients first wins financially</p>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="card" style="border-top: 4px solid var(--accent-red);">
+                    <h3>Raise First, No Clients</h3>
+                    <div class="stat-card" style="margin-top: 16px;">
+                        <div class="stat-value">$2-3M</div>
+                        <div class="stat-label">Valuation</div>
+                    </div>
+                    <p style="margin-top: 16px; font-size: 0.9rem;">Hard to close, 3-6 months of meetings, investors skeptical</p>
+                </div>
+
+                <div class="card" style="border-top: 4px solid var(--accent-green);">
+                    <h3>Clients First, Then Raise</h3>
+                    <div class="stat-card" style="margin-top: 16px;">
+                        <div class="stat-value">$5-8M</div>
+                        <div class="stat-label">Valuation</div>
+                    </div>
+                    <p style="margin-top: 16px; font-size: 0.9rem;">Easier close, investor competition, better terms</p>
+                </div>
+
+                <div class="card" style="border-top: 4px solid var(--accent-orange);">
+                    <h3>Bootstrap Forever</h3>
+                    <div class="stat-card" style="margin-top: 16px;">
+                        <div class="stat-value">Risk</div>
+                        <div class="stat-label">Runlayer outspends you</div>
+                    </div>
+                    <p style="margin-top: 16px; font-size: 0.9rem;">80% of bootstrapped startups fail within 18 months</p>
+                </div>
+            </div>
+
+            <div class="alert">
+                <div class="alert-icon">⚡</div>
+                <div class="alert-content">
+                    <h4>Time Investment</h4>
+                    <p><strong>6-8 weeks</strong> to get 3-5 clients = <strong>2-3x better valuation</strong> and massive risk reduction (you've proven demand)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10 Week Plan -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">7</div>
+                <div class="section-title">
+                    <h2>Your 10-Week Plan</h2>
+                    <p>Concrete milestones for each period</p>
+                </div>
+            </div>
+
+            <div class="week-grid">
+                <div class="week-card">
+                    <div class="week-header">
+                        <span class="week-badge">Week 1-2</span>
+                        <h4>Build SDK + Dashboard</h4>
+                    </div>
+                    <p>Working <code>pip install aasp</code> with basic policy editor</p>
+                </div>
+
+                <div class="week-card">
+                    <div class="week-header">
+                        <span class="week-badge">Week 3-4</span>
+                        <h4>Polish + Docs</h4>
+                    </div>
+                    <p>Public beta launch with documentation and examples</p>
+                </div>
+
+                <div class="week-card">
+                    <div class="week-header">
+                        <span class="week-badge">Week 5-6</span>
+                        <h4>Community Outreach</h4>
+                    </div>
+                    <p>15-20 beta signups from Discord, Reddit, Twitter</p>
+                </div>
+
+                <div class="week-card">
+                    <div class="week-header">
+                        <span class="week-badge">Week 7-8</span>
+                        <h4>User Interviews</h4>
+                    </div>
+                    <p>3-5 active daily users, iterate on feedback</p>
+                </div>
+
+                <div class="week-card">
+                    <div class="week-header">
+                        <span class="week-badge">Week 9-10</span>
+                        <h4>Convert to Paid</h4>
+                    </div>
+                    <p>3 logos you can name-drop, $500-2K MRR</p>
+                </div>
+
+                <div class="week-card">
+                    <div class="week-header">
+                        <span class="week-badge">Week 11-12</span>
+                        <h4>Raise</h4>
+                    </div>
+                    <p>YC interview or $500K-1M seed with proof points</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom Line -->
+        <div class="bottom-line">
+            <h3>The Bottom Line</h3>
+            <div class="bottom-line-grid">
+                <div class="bottom-line-item">
+                    <div class="question">Raise or clients first?</div>
+                    <div class="answer">Clients first (3-5, not 50)</div>
+                </div>
+                <div class="bottom-line-item">
+                    <div class="question">How long?</div>
+                    <div class="answer">6-8 weeks to traction</div>
+                </div>
+                <div class="bottom-line-item">
+                    <div class="question">What counts?</div>
+                    <div class="answer">3-5 paid/design partners</div>
+                </div>
+                <div class="bottom-line-item">
+                    <div class="question">Then what?</div>
+                    <div class="answer">Raise $500K-1M or join YC</div>
+                </div>
+                <div class="bottom-line-item">
+                    <div class="question">Why not raise first?</div>
+                    <div class="answer">Worse terms, harder close</div>
+                </div>
+                <div class="bottom-line-item">
+                    <div class="question">Your advantage?</div>
+                    <div class="answer">You're engineers. Build fast.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 48px;">
+            <h3>The Formula</h3>
+            <p style="font-size: 1.25rem; margin-bottom: 0;">
+                <strong>Ship fast → Get 5 users → Convert 3 to paid → Raise with leverage</strong>
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        <p>AASP Go-To-Market Strategy | December 2024</p>
+        <p style="margin-top: 8px; font-size: 0.85rem;">Build something, put it in front of people, and let the product do the talking.</p>
+    </footer>
+</body>
+</html>

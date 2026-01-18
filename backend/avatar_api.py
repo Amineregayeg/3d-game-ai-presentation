@@ -30,9 +30,10 @@ GPU_PORT = int(os.environ.get('GPU_PORT', '2674'))
 GPU_USER = os.environ.get('GPU_USER', 'root')
 MUSETALK_PATH = os.environ.get('MUSETALK_PATH', '/root/SadTalker')
 
-# Storage paths
-AVATAR_OUTPUT_DIR = Path('/home/developer/3d-game-ai/backend/static/avatar')
-AVATAR_REFERENCE_DIR = Path('/home/developer/3d-game-ai/backend/static/avatars')
+# Storage paths (use local paths relative to this file)
+BACKEND_DIR = Path(__file__).parent
+AVATAR_OUTPUT_DIR = BACKEND_DIR / 'static' / 'avatar'
+AVATAR_REFERENCE_DIR = BACKEND_DIR / 'static' / 'avatars'
 
 # Ensure directories exist
 AVATAR_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

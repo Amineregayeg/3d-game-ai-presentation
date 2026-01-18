@@ -93,14 +93,6 @@ export function SlideNavigation({
         </button>
       </div>
 
-      {/* Keyboard hints */}
-      <div className="fixed bottom-4 right-4 z-50 text-xs text-slate-600 hidden md:block">
-        <span className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-500">←</span>
-        <span className="mx-1">/</span>
-        <span className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-500">→</span>
-        <span className="ml-2 text-slate-700">navigate</span>
-      </div>
-
       {/* Slide Title */}
       <div className="fixed top-4 right-4 z-50 px-3 py-1.5 bg-slate-800/80 border border-slate-700 rounded-lg backdrop-blur-sm">
         <span className="text-xs text-slate-500 font-mono">{presentationTitle}</span>

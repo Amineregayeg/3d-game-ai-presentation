@@ -1,0 +1,226 @@
+Summary,Issue Type,Description,Priority,Story Points,Epic Link,Labels,Component,Sprint,Acceptance Criteria
+"Epic 1.1: Multi-Tenant Portal",Epic,"Provide secure, isolated workspaces for each customer organization",High,24,,"phase-1,foundation",Portal,,
+"User Authentication System",Story,"As a platform user, I want to securely authenticate using email/password or SSO so that I can access my organization's workspace",High,8,Epic 1.1: Multi-Tenant Portal,"auth,security",Portal,Sprint 1,"- Email/password authentication with bcrypt hashing
+- JWT tokens with 24h expiry and refresh tokens
+- Google OAuth 2.0 integration
+- Microsoft Azure AD integration
+- Password reset via email
+- Account lockout after 5 failed attempts
+- Session management"
+"Organization & Tenant Management",Story,"As a platform administrator, I want to create and manage organizations so that customers have isolated workspaces",High,8,Epic 1.1: Multi-Tenant Portal,"multi-tenant,rbac",Portal,Sprint 2,"- Create organization with name, domain, settings
+- Invite users to organization via email
+- Role-based access control (Owner, Admin, Member, Viewer)
+- Organization-level settings
+- Data isolation between tenants"
+"Portal Dashboard UI",Story,"As a logged-in user, I want to see a dashboard with my projects and recent activity so that I can quickly navigate to my work",High,8,Epic 1.1: Multi-Tenant Portal,"ui,dashboard",Portal,Sprint 2,"- Dashboard shows active projects (BUILD/RUN)
+- Recent activity feed
+- Pending approvals counter (from Harbyx)
+- Quick actions menu
+- Navigation sidebar
+- Responsive design"
+"Epic 1.2: Database Architecture",Epic,"Provide reliable, scalable data storage with full audit capabilities",High,10,,"phase-1,database",Database,,
+"Core Database Schema",Story,"As a developer, I want a well-designed database schema so that the platform can scale and maintain data integrity",High,5,Epic 1.2: Database Architecture,"database,schema",Database,Sprint 1,"- PostgreSQL with proper indexes
+- Multi-tenant schema with organization_id
+- Soft delete support
+- Audit columns
+- Database migrations
+- Seed data"
+"Vector Database for RAG",Story,"As a platform, I want to store and search document embeddings efficiently so that AI agents can retrieve relevant knowledge",High,5,Epic 1.2: Database Architecture,"database,rag,vector",Database,Sprint 2,"- pgvector extension enabled
+- Documents table with vector column
+- HNSW index for similarity search
+- Multiple knowledge bases per org"
+"Epic 1.3: API Gateway & Backend",Epic,"Provide secure, scalable API infrastructure",High,10,,"phase-1,api",Backend,,
+"RESTful API Framework",Story,"As a frontend developer, I want a well-documented REST API so that I can build the UI efficiently",High,5,Epic 1.3: API Gateway & Backend,"api,documentation",Backend,Sprint 1,"- OpenAPI 3.0 specification
+- Consistent error response format
+- Request validation
+- Rate limiting per organization
+- API versioning (v1)
+- Swagger UI documentation"
+"WebSocket Infrastructure",Story,"As a user, I want to receive real-time updates so that I see agent progress and approvals immediately",High,5,Epic 1.3: API Gateway & Backend,"websocket,realtime",Backend,Sprint 2,"- WebSocket server with authentication
+- Room-based subscriptions
+- Event types for Harbyx webhook relay
+- Automatic reconnection
+- Presence tracking"
+"Epic 2.1: Harbyx Integration",Epic,"Integrate Harbyx (app.harbyx.com) as the governance layer for human-in-the-loop AI agent control",Critical,34,,"phase-2,harbyx,governance",Harbyx,,
+"Harbyx SDK Setup",Story,"As a developer, I want to integrate the Harbyx SDK so that all agent actions are governed",Critical,3,Epic 2.1: Harbyx Integration,"harbyx,sdk,integration",Harbyx,Sprint 3,"- Install aasp-sdk package
+- Configure API key securely
+- Create Harbyx client wrapper service
+- Test connection to Harbyx API
+- Handle authentication errors gracefully"
+"Policy Configuration",Story,"As a platform administrator, I want to define approval policies in Harbyx so that agent actions are evaluated correctly",Critical,5,Epic 2.1: Harbyx Integration,"harbyx,policies,governance",Harbyx,Sprint 3,"- Create Type A policy (Acknowledgement - auto-approve low-risk)
+- Create Type B policy (Approval required - scope, design)
+- Create Type C policy (Go/No-Go - production deployments)
+- Map policies to agent action types
+- Configure approver roles per policy"
+"Agent Action Decorator",Story,"As a developer, I want to wrap agent actions with Harbyx governance so that every action is evaluated before execution",Critical,8,Epic 2.1: Harbyx Integration,"harbyx,decorator,agents",Harbyx,Sprint 3,"- Create @governed_action decorator
+- Automatically call Harbyx /ingest endpoint
+- Handle ALLOW -> proceed with action
+- Handle BLOCK -> raise exception with reason
+- Handle REQUIRE_APPROVAL -> wait for decision
+- Pass approval context to agent"
+"Approval Inbox UI",Story,"As an approver, I want to see and act on pending approvals so that I can make timely decisions",High,8,Epic 2.1: Harbyx Integration,"harbyx,ui,approvals",Harbyx,Sprint 4,"- Fetch pending approvals from Harbyx API
+- Display approval cards with context
+- Show action details and diff when available
+- Approve/Reject buttons with comment
+- Real-time updates via Harbyx webhooks
+- Filter by type, agent, status"
+"Audit Log Viewer",Story,"As an administrator, I want to view the audit trail from Harbyx so that I can investigate and demonstrate compliance",High,5,Epic 2.1: Harbyx Integration,"harbyx,audit,compliance",Harbyx,Sprint 4,"- Fetch audit logs from Harbyx
+- Display in timeline view
+- Search by date, agent, action type
+- Show full action context on expand
+- Export to CSV/JSON
+- Link to related approvals"
+"Webhook Integration",Story,"As a platform, I want to receive real-time events from Harbyx so that the UI updates immediately",High,5,Epic 2.1: Harbyx Integration,"harbyx,webhooks,realtime",Harbyx,Sprint 4,"- Configure Harbyx webhook endpoint
+- Handle action.blocked events
+- Handle approval.requested events
+- Handle approval.resolved events
+- Push updates to frontend via WebSocket
+- Verify webhook signatures"
+"Epic 2.2: Workflow Engine",Epic,"Manage BUILD/RUN project phases with Harbyx-governed transitions",High,13,,"phase-2,workflow",Workflow,,
+"Workflow State Machine",Story,"As a project manager, I want to move projects through defined phases so that delivery follows a consistent process",High,8,Epic 2.2: Workflow Engine,"workflow,state-machine",Workflow,Sprint 3,"- BUILD workflow phases defined
+- RUN workflow phases defined
+- State transitions trigger Harbyx policy check
+- Phase history tracked
+- Workflow visualization"
+"Phase Gate UI",Story,"As a project stakeholder, I want to see the current phase and progress visually so that I understand where the project stands",High,5,Epic 2.2: Workflow Engine,"ui,workflow",Workflow,Sprint 4,"- Visual workflow timeline
+- Current phase highlighted
+- Approval status from Harbyx
+- Click to view phase details
+- Transition buttons (governed by Harbyx)"
+"Epic 2.3: Backlog Management",Epic,"Track all work items in a unified system",High,16,,"phase-2,backlog,alm",Backlog,,
+"Backlog Item CRUD",Story,"As a product owner, I want to create and manage backlog items so that all work is tracked",High,8,Epic 2.3: Backlog Management,"backlog,crud",Backlog,Sprint 4,"- Item types: Epic, Story, Task, Bug, Risk, ADR
+- Parent-child relationships
+- Status workflow
+- Priority levels
+- Assignee and labels
+- Estimation"
+"Backlog Board (Kanban)",Story,"As a team member, I want to view work on a kanban board so that I can see progress at a glance",High,8,Epic 2.3: Backlog Management,"ui,kanban,backlog",Backlog,Sprint 4,"- Drag-and-drop kanban
+- Customizable columns
+- Swimlanes
+- Quick filters
+- Card preview
+- WIP limits"
+"Epic 3.1: Agent Orchestration",Epic,"Coordinate multiple specialized agents efficiently with Harbyx governance",Critical,26,,"phase-3,agents,orchestration",Agents,,
+"Agent Registry & Lifecycle",Story,"As a platform, I want to manage agent instances and configurations so that agents can be deployed and monitored",High,13,Epic 3.1: Agent Orchestration,"agents,registry",Agents,Sprint 5,"- Agent type registry (7 agents)
+- Agent configuration per org
+- Health monitoring
+- Versioning
+- All agents use @governed_action decorator"
+"Agent Orchestrator",Story,"As a workflow engine, I want to invoke the right agent at the right phase so that agents work together seamlessly",Critical,13,Epic 3.1: Agent Orchestration,"agents,orchestrator",Agents,Sprint 6,"- Phase-to-agent mapping
+- Sequential and parallel execution
+- Input/output passing
+- Error handling via Harbyx
+- Timeout handling
+- Harbyx approval integration"
+"Epic 3.2: Discovery Agent",Epic,"Automate platform analysis and risk identification",High,21,,"phase-3,agents,discovery",Agents,,
+"Platform Scanner",Story,"As a tech lead, I want the agent to scan the platform and document current state",High,13,Epic 3.2: Discovery Agent,"agents,discovery,scanner",Agents,Sprint 7,"- Scan Salesforce org metadata
+- Generate As-Is snapshot
+- Identify customizations
+- Map dependencies
+- Governed by Harbyx Type A policy"
+"Risk Detection Engine",Story,"As a tech lead, I want automatic risk identification so that we address issues proactively",High,8,Epic 3.2: Discovery Agent,"agents,discovery,risk",Agents,Sprint 7,"- Security risks
+- Performance risks
+- Technical debt
+- Compliance risks
+- Risk scoring"
+"Epic 3.3: Scoping Agent",Epic,"Transform requirements into actionable backlog",High,16,,"phase-3,agents,scoping",Agents,,
+"Requirement Analyzer",Story,"As a product owner, I want automatic requirement analysis so that nothing is missed",High,8,Epic 3.3: Scoping Agent,"agents,scoping,nlp",Agents,Sprint 8,"- Parse natural language
+- Extract requirements
+- Detect ambiguities
+- Suggest questions"
+"Epic/Story Generator",Story,"As a product owner, I want automatic story breakdown so that I have a ready backlog",High,8,Epic 3.3: Scoping Agent,"agents,scoping,backlog",Agents,Sprint 8,"- Generate Epics
+- Break into Stories
+- Write acceptance criteria
+- Estimate points
+- Governed by Harbyx Type B policy"
+"Epic 3.4: Solution Designer Agent",Epic,"Generate professional technical designs",High,18,,"phase-3,agents,design",Agents,,
+"Design Document Generator",Story,"As a design authority, I want automatic design document generation",High,13,Epic 3.4: Solution Designer Agent,"agents,design,documentation",Agents,Sprint 9,"- Solution overview
+- Data model diagrams
+- Integration points
+- Configuration specs
+- Governed by Harbyx Type B policy"
+"ADR Generator",Story,"As an architect, I want automatic ADR creation so that decisions are documented",High,5,Epic 3.4: Solution Designer Agent,"agents,design,adr",Agents,Sprint 9,"- Generate ADR from decisions
+- Context and problem
+- Options considered
+- Decision and rationale"
+"Epic 3.5: Remaining Agents",Epic,"Complete agent suite implementation with Harbyx governance",High,37,,"phase-3,agents",Agents,,
+"Challenger Agent",Story,"Design review and risk analysis agent",Medium,8,Epic 3.5: Remaining Agents,"agents,challenger",Agents,Sprint 10,"- Design review checklist
+- Risk identification
+- Alternative suggestions"
+"Delivery Agent",Story,"Execution and deployment agent with Harbyx Type C governance",High,13,Epic 3.5: Remaining Agents,"agents,delivery,mcp",Agents,Sprint 10,"- Enhanced MCP integration
+- Deployment orchestration
+- Rollback capability
+- Governed by Harbyx Type C policy for production"
+"QA Agent",Story,"Automated testing and validation agent",Medium,8,Epic 3.5: Remaining Agents,"agents,qa,testing",Agents,Sprint 11,"- Test case generation
+- Test execution
+- Validation checking"
+"RunOps Agent",Story,"Operational tasks and incident handling agent",Medium,8,Epic 3.5: Remaining Agents,"agents,runops,operations",Agents,Sprint 11,"- Incident triage
+- Runbook execution
+- Monitoring setup"
+"Epic 4.1: Jira Integration",Epic,"Bi-directional sync with Jira Cloud",High,18,,"phase-4,integration,jira",Integrations,,
+"Jira OAuth Connection",Story,"Connect to Jira Cloud with OAuth 2.0",High,5,Epic 4.1: Jira Integration,"integration,jira,oauth",Integrations,Sprint 12,"- OAuth 2.0 connection
+- Secure credential storage
+- Health check"
+"Jira Bi-directional Sync",Story,"Sync issues between platform and Jira",High,13,Epic 4.1: Jira Integration,"integration,jira,sync",Integrations,Sprint 12,"- Sync Epic, Story, Task, Bug
+- Map status workflows
+- Sync comments
+- Real-time webhooks"
+"Epic 4.2: GitHub Integration",Epic,"Connect with GitHub for code and CI/CD",High,13,,"phase-4,integration,github",Integrations,,
+"GitHub App Connection",Story,"Connect to GitHub as GitHub App",High,5,Epic 4.2: GitHub Integration,"integration,github,oauth",Integrations,Sprint 13,"- GitHub App installation
+- Repository access
+- Webhook setup"
+"PR and Issue Sync",Story,"Sync PRs and issues with backlog",High,8,Epic 4.2: GitHub Integration,"integration,github,sync",Integrations,Sprint 13,"- Link PRs to backlog items
+- Auto-update on merge
+- Workflow triggers"
+"Epic 4.3: Teams Integration",Epic,"Microsoft Teams notifications and approvals",Medium,8,,"phase-4,integration,teams",Integrations,,
+"Teams App",Story,"Microsoft Teams integration for notifications",Medium,8,Epic 4.3: Teams Integration,"integration,teams",Integrations,Sprint 13,"- Bot commands
+- Approval cards (relayed from Harbyx)
+- Channel notifications"
+"Epic 4.4: ServiceNow Integration",Epic,"Connect with ServiceNow for ITSM",Medium,8,,"phase-4,integration,servicenow",Integrations,,
+"ServiceNow Connector",Story,"Connect to ServiceNow for incidents and changes",Medium,8,Epic 4.4: ServiceNow Integration,"integration,servicenow",Integrations,Sprint 14,"- Instance connection
+- Sync incidents to RUN
+- Create change requests"
+"Epic 4.5: CI/CD Integration",Epic,"Connect with Salesforce CI/CD tools",High,8,,"phase-4,integration,cicd",Integrations,,
+"Copado/Gearset Integration",Story,"Integrate with Salesforce deployment tools",High,8,Epic 4.5: CI/CD Integration,"integration,cicd,copado,gearset",Integrations,Sprint 14,"- Trigger deployments (governed by Harbyx)
+- Receive status
+- Rollback support"
+"Epic 5.1: Microsoft Adapter",Epic,"Support Microsoft Power Platform",High,16,,"phase-5,platform,microsoft",Platforms,,
+"Dataverse Connection",Story,"Connect to Microsoft Dataverse",High,8,Epic 5.1: Microsoft Adapter,"platform,microsoft,dataverse",Platforms,Sprint 15,"- Azure AD auth
+- Metadata API
+- CRUD operations"
+"Power Platform Scanner",Story,"Scan Power Platform environment",Medium,8,Epic 5.1: Microsoft Adapter,"platform,microsoft,scanner",Platforms,Sprint 15,"- Environment discovery
+- Component mapping"
+"Epic 5.2: Adobe Adapter",Epic,"Support Adobe Experience Platform",Medium,16,,"phase-5,platform,adobe",Platforms,,
+"AEP Connection",Story,"Connect to Adobe Experience Platform",Medium,8,Epic 5.2: Adobe Adapter,"platform,adobe,aep",Platforms,Sprint 16,"- Adobe IMS auth
+- Schema access"
+"Journey Orchestration",Story,"Connect to Adobe Journey Optimizer",Medium,8,Epic 5.2: Adobe Adapter,"platform,adobe,journey",Platforms,Sprint 16,"- Journey discovery
+- Audience access"
+"Epic 5.3: Generic Adapter Framework",Epic,"Framework for adding new platforms",High,8,,"phase-5,platform,sdk",Platforms,,
+"Adapter SDK",Story,"Create SDK for building platform adapters",High,8,Epic 5.3: Generic Adapter Framework,"platform,sdk,framework",Platforms,Sprint 16,"- Standard interface
+- Auth abstraction
+- Documentation"
+"Epic 6.1: Analytics Dashboard",Epic,"Delivery and agent performance metrics (leveraging Harbyx data)",High,16,,"phase-6,analytics",Analytics,,
+"Delivery Metrics",Story,"Track delivery performance metrics",High,8,Epic 6.1: Analytics Dashboard,"analytics,metrics,delivery",Analytics,Sprint 17,"- Lead time
+- Cycle time
+- Throughput
+- Deployment frequency"
+"Agent Metrics from Harbyx",Story,"Pull agent metrics from Harbyx audit logs",High,3,Epic 6.1: Analytics Dashboard,"analytics,metrics,harbyx",Analytics,Sprint 17,"- Success rate per agent
+- Approval wait time
+- Blocked actions count"
+"Report Builder",Story,"Create custom reports",Medium,5,Epic 6.1: Analytics Dashboard,"reporting,builder",Analytics,Sprint 17,"- Drag-and-drop builder
+- Export to PDF/Excel"
+"Epic 6.2: Billing & Usage",Epic,"Usage tracking and billing integration",High,13,,"phase-6,billing",Billing,,
+"Usage Tracking",Story,"Track platform and agent usage",High,5,Epic 6.2: Billing & Usage,"billing,usage",Billing,Sprint 18,"- API call tracking
+- Agent execution tracking
+- Harbyx usage correlation"
+"Stripe Integration",Story,"Billing via Stripe",High,8,Epic 6.2: Billing & Usage,"billing,stripe,payments",Billing,Sprint 18,"- Subscription management
+- Usage-based billing"
+"Epic 6.3: Production Deployment",Epic,"Production-ready infrastructure",High,18,,"phase-6,infrastructure",Infrastructure,,
+"Security Audit",Story,"Security review (partial coverage from Harbyx SOC 2)",High,5,Epic 6.3: Production Deployment,"security,audit",Infrastructure,Sprint 18,"- OWASP Top 10 review
+- Dependency audit
+- Leverage Harbyx SOC 2 compliance"
+"Kubernetes Deployment",Story,"Deploy to Kubernetes cluster",High,8,Epic 6.3: Production Deployment,"infrastructure,kubernetes",Infrastructure,Sprint 18,"- Helm charts
+- ConfigMaps and Secrets
+- TLS setup"
+"CI/CD Pipeline",Story,"Automated deployment pipeline",High,5,Epic 6.3: Production Deployment,"infrastructure,cicd",Infrastructure,Sprint 18,"- GitHub Actions workflow
+- Environment promotion"

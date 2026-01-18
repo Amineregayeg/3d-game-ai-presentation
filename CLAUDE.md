@@ -2,6 +2,33 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CRITICAL: Two Projects - Don't Confuse Them!
+
+### FreelanceHub (Task Tracker)
+- **Location**: `/mnt/d/freelance-hub/`
+- **VPS**: `5.249.161.66:3002` (`/var/www/freelance-hub/`)
+- **Purpose**: Amine's personal project management tool
+- **Use For**: Updating task status in backlog database ONLY
+- **DO NOT**: Implement product features here
+
+### Salesforce Avatar AI (Hatem's Product)
+- **Location**: `/mnt/d/3d-game-ai-presentation/`
+- **VPS**: `5.249.161.66:3000` (`/home/developer/3d-game-ai/`)
+- **Purpose**: Consulting Delivery OS - the actual product
+- **Use For**: Implementing ALL sprint features from the backlog
+- **Routes**: `/salesforce_demo`, `/dashboard`, `/login`
+
+### Workflow for Any Sprint Task
+1. **Implement** in Salesforce Avatar AI (`/mnt/d/3d-game-ai-presentation/`)
+2. **Deploy** to VPS (`5.249.161.66:3000`)
+3. **Update status** in FreelanceHub database:
+   ```bash
+   sshpass -p 'AiDev123123123.' ssh root@5.249.161.66 \
+     "sudo -u postgres psql -d freelancehub -c \"UPDATE tasks SET status='done' WHERE title ILIKE '%task name%';\""
+   ```
+
+---
+
 ## Project Overview
 
 This is a Next.js presentation application showcasing a 3D Game Generation AI Assistant system. The project features three main presentation routes:
@@ -148,6 +175,73 @@ The `/docs` directory contains comprehensive technical specifications:
 
 These documentation files serve as the source of truth for the technical presentation slides.
 
+## Consulting Delivery OS - Product Backlog
+
+**CRITICAL: Update the backlog after EVERY implementation task.**
+
+After completing any task:
+1. Update `docs/PRODUCT_BACKLOG_6_MONTHS.md` - change status ⬜→🔄→✅
+2. Update VPS PostgreSQL database: `sudo -u postgres psql -d freelancehub -c "UPDATE tasks SET status='done' WHERE title ILIKE '%task name%';"`
+3. Sync to external backup: `cp docs/PRODUCT_BACKLOG_6_MONTHS.* /mnt/d/freelance-hub/scripts/hatem-backlog/`
+4. Ensure `scheduled_date` matches `completed_at` for done tasks (no future dates for completed work)
+
+The Consulting Delivery OS is a multi-agent platform for Salesforce consulting. The backlog tracks all work items.
+
+### Backlog Files
+
+| File | Purpose | Update Frequency |
+|------|---------|------------------|
+| `docs/PRODUCT_BACKLOG_6_MONTHS.md` | Master backlog with status | After each task |
+| `docs/PRODUCT_BACKLOG_6_MONTHS.csv` | Jira-importable CSV | Weekly sync |
+| `docs/SPRINT_PLAN_6_MONTHS.md` | Sprint-by-sprint plan | Sprint planning |
+
+**External Copy:** `/mnt/d/freelance-hub/scripts/hatem-backlog/` (keep in sync)
+
+### Related V2 Documents (Full Scope)
+
+| Document | Scope | Sprints |
+|----------|-------|---------|
+| `docs/CONSULTING_DELIVERY_OS_ROADMAP_V2.md` | Full vision (7 agents, all integrations) | 30 weeks |
+| `docs/BACKLOG_JIRA_IMPORT_V2.csv` | Complete backlog (367 points) | 18 sprints |
+| `docs/SPRINT_PLANNING_SUMMARY_V2.md` | Full sprint plan | 36 weeks |
+
+### 6-Month MVP vs Full Scope
+
+The 6-month backlog is a **reduced scope** MVP:
+
+| Aspect | 6-Month MVP | Full Scope (V2) |
+|--------|-------------|-----------------|
+| Duration | 26 weeks | 36 weeks |
+| Agents | 4 (Discovery, Scoping, Designer, Delivery) | 7 (+ Challenger, QA, RunOps) |
+| Integrations | Jira, Slack | Jira, GitHub, Teams, ServiceNow, CI/CD |
+| Platforms | Salesforce only | Salesforce, Microsoft, Adobe |
+
+### Backlog Update Workflow
+
+After completing any task:
+
+1. **Update status** in `docs/PRODUCT_BACKLOG_6_MONTHS.md`:
+   - Change `⬜ TODO` → `🔄 IN_PROGRESS` → `✅ DONE`
+2. **Update CSV** in `docs/PRODUCT_BACKLOG_6_MONTHS.csv`:
+   - Change Status column: `To Do` → `In Progress` → `Done`
+3. **Sync external copy**:
+   ```bash
+   cp docs/PRODUCT_BACKLOG_6_MONTHS.* /mnt/d/freelance-hub/scripts/hatem-backlog/
+   ```
+4. **Update sprint progress** in `docs/SPRINT_PLAN_6_MONTHS.md` if sprint changes
+
+### Current Blockers (Fix First)
+
+1. **Flask blueprints not registered** - Add 2 lines to `backend/app.py`:
+   ```python
+   from salesforce_rag_api import salesforce_rag_bp
+   from salesforce_mcp_api import salesforce_mcp_bp
+   app.register_blueprint(salesforce_rag_bp)
+   app.register_blueprint(salesforce_mcp_bp)
+   ```
+2. **Data not indexed** - Run ingestion scripts
+3. **Auth UI not connected** - Wire login to backend
+
 - **`/MANIM_VIDEO_PLAN.md`** - Comprehensive plan for creating Manim-based animated videos explaining the VoxFormer STT architecture
 
 - **`/manim-videos/`** - Complete Manim video implementation (based on 3b1b's manim library):
@@ -170,21 +264,39 @@ These documentation files serve as the source of truth for the technical present
 
 ## VPS Deployment
 
-### Server Access (NEW VPS - Valid for 6 months from Dec 2024)
+> **Full security details**: See `/docs/VPS_ACCESS.md`
+
+### Server Access (Fresh Install - January 2026)
 - **Host**: `5.249.161.66`
 - **SSH Port**: `22`
-- **Root Access**: `ssh root@5.249.161.66` (password: `<VPS_PASSWORD>`)
-- **Developer User**: `ssh developer@5.249.161.66` (password: <DEV_PASSWORD>)
+- **Hostname**: `gold-raccoon-61739`
+
+**SSH Key Access (Preferred):**
+```bash
+ssh vps-zap
+# or
+ssh -i ~/.ssh/vps_5.249.161.66 root@5.249.161.66
+```
+
+**Password Access (Fallback):**
+```bash
+sshpass -p 'AiDev123123123.' ssh root@5.249.161.66
+```
 
 ### Live URLs
 - **Frontend**: http://5.249.161.66:3000
 - **Backend API**: http://5.249.161.66:5000
 
 ### Server Environment
-- **OS**: Debian 13 (Trixie)
-- **Node.js**: v20.19.6
-- **Python**: 3.13.5
-- **Process Manager**: pm2 (installed globally)
+- **OS**: Ubuntu 20.04.6 LTS (Focal Fossa)
+- **RAM**: 31 GB
+- **Disk**: 492 GB
+- **Process Manager**: pm2 (to be installed)
+
+### Security Configuration
+- **Firewall**: UFW enabled (ports 22, 80, 443, 3000, 5000, 5001, 5002, 9876)
+- **Malware Detection**: rkhunter, chkrootkit, ClamAV installed
+- **SSH**: Key + password auth enabled (non-aggressive limits)
 
 ### Project Structure on VPS
 ```
@@ -252,26 +364,57 @@ pm2 save                # Save current process list
 ### Old VPS (DEPRECATED - Expired Dec 2024)
 - Host: `134.255.234.188` - NO LONGER AVAILABLE
 
-## GPU Server (Vast.ai - VoxFormer Training)
+## GPU Server (Vast.ai - Full Demo Pipeline)
 
-### Current Instance (Stage 4 - December 2024)
-- **Host**: `145.236.166.111`
+### Current Instance (December 2024)
+- **Host**: `80.188.223.202`
 - **SSH Port**: `17757`
-- **Instance ID**: 28907731
-- **GPU**: NVIDIA RTX 4090 (24GB VRAM)
-- **CPU**: AMD EPYC 7702 (16 cores)
-- **RAM**: 64.4 GB
-- **Provider**: Vast.ai (~$0.40/hr)
+- **Proxy**: `ssh -p 31523 root@ssh2.vast.ai`
+- **GPU**: H100 or RTX 4090 (varies)
+- **Provider**: Vast.ai
 
 ### Connection
 ```bash
 # Direct SSH
-ssh -p 17757 root@145.236.166.111
+ssh -p 17757 root@80.188.223.202
 
-# Via VPS (passwordless - SSH key configured)
+# Via proxy
+ssh -p 31523 root@ssh2.vast.ai
+
+# Via VPS
 sshpass -p '<VPS_PASSWORD>' ssh root@5.249.161.66 \
-  'ssh -p 17757 root@145.236.166.111 "command"'
+  'ssh -p 17757 root@80.188.223.202 "command"'
 ```
+
+### Required SSH Tunnels (IMPORTANT)
+
+**Before testing /demo or /full_demo, these tunnels MUST be active on VPS:**
+
+| Port | Service | Purpose |
+|------|---------|---------|
+| 5001 | Whisper + SadTalker | STT and lip-sync for /full_demo |
+| 5002 | VoxFormer | Custom STT for /demo |
+
+**Start tunnels on VPS:**
+```bash
+# SSH into VPS first, then run:
+ssh -p 17757 -f -N -L 5001:localhost:5001 root@80.188.223.202
+ssh -p 17757 -f -N -L 5002:localhost:5002 root@80.188.223.202
+```
+
+**Check if tunnels are active:**
+```bash
+ps aux | grep "ssh.*500" | grep -v grep
+# Should show both 5001 and 5002 tunnels
+```
+
+**Test tunnels:**
+```bash
+curl -s http://localhost:5001/health  # Whisper/SadTalker
+curl -s http://localhost:5002/health  # VoxFormer
+```
+
+**Note:** Tunnels do NOT persist after VPS reboot. Re-run the commands above if services return "connection failed".
 
 ### GPU Server Structure (Stage 4)
 ```
@@ -363,3 +506,148 @@ sed -i 's|resume_from:.*|resume_from: checkpoints/stage4/latest.pt|' configs/sta
 - **URL**: http://5.249.161.66:3000/avatar_demo
 - **API**: POST http://5.249.161.66:5000/api/avatar/speak
 - Uses: ElevenLabs TTS + SadTalker lip-sync
+
+## Full Demo Pipeline (CRITICAL - Keep Intact)
+
+The Full Demo at `/full_demo` integrates multiple services. **These must be preserved when making changes:**
+
+### Critical Services Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         FULL DEMO PIPELINE                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐             │
+│  │   Blender   │    │  SadTalker  │    │  VoxFormer  │             │
+│  │     MCP     │    │   Lipsync   │    │     STT     │             │
+│  │  Port 9876  │    │  GPU :5001  │    │  Flask API  │             │
+│  └─────────────┘    └─────────────┘    └─────────────┘             │
+│        │                  │                  │                      │
+│        ▼                  ▼                  ▼                      │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │              Flask Backend (Port 5000)                       │   │
+│  │  /api/blender/generate  /api/gpu/lipsync  /api/voxformer/*  │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              │                                      │
+│                              ▼                                      │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │              Next.js Frontend (Port 3000)                    │   │
+│  │                    /full_demo page                           │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 1. Blender MCP Server (DO NOT BREAK)
+
+**Purpose**: Real-time 3D model generation via Claude + Blender
+
+**Location**: VPS (5.249.161.66)
+- **Port**: 9876
+- **Process**: Blender running in GUI mode with Xvfb
+- **Script**: `/root/blender_server_gui.py`
+- **Startup**: `/root/start_blender_mcp.sh`
+- **Systemd**: `blender-mcp.service` (auto-start on boot)
+
+**Critical Fix Applied**: Must run Blender in **GUI mode** (not `--background`) with Xvfb for proper context. The glTF exporter requires `bpy.context.active_object` which only exists in GUI mode.
+
+**Check Status**:
+```bash
+ss -tlnp | grep 9876  # Should show blender listening
+curl -s http://localhost:5000/api/blender/health  # Should show blender_connected: true
+```
+
+**If Broken - Recovery**:
+```bash
+/root/start_blender_mcp.sh
+pm2 restart backend
+```
+
+### 2. SadTalker Lipsync (DO NOT BREAK)
+
+**Purpose**: Generate talking avatar videos from audio
+
+**Location**: GPU Server (Vast.ai)
+- **Host**: `80.188.223.202` (or current Vast.ai instance)
+- **Port**: `17757` (SSH), `5001` (API via tunnel)
+- **Script**: `/root/full_demo_api.py`
+
+**VPS Proxy**: Flask backend proxies to GPU via SSH tunnel
+- **Endpoint**: `POST /api/gpu/lipsync`
+- **Timeout**: 600 seconds (for long videos)
+- **Proxy Code**: `/home/developer/3d-game-ai/backend/gpu_proxy.py`
+
+**Check Status**:
+```bash
+# From VPS
+ssh -p 17757 root@80.188.223.202 "curl -s http://localhost:5001/health"
+```
+
+### 3. Whisper STT (Current - Works)
+
+**Purpose**: Speech-to-text transcription
+
+**Location**: GPU Server
+- **Endpoint**: `POST /api/gpu/stt`
+- Uses OpenAI Whisper model on GPU
+
+### 4. VoxFormer STT (To Be Implemented)
+
+**Purpose**: Custom speech-to-text using trained VoxFormer model
+
+**Recommended Checkpoint**: `/home/developer/voxformer_checkpoints/stage2/best.pt`
+- Size: 1.8GB
+- Tokenizer: `/home/developer/voxformer_backup/tokenizer/`
+- Source: `/home/developer/voxformer_backup/src/`
+
+**Target Endpoint**: `POST /api/voxformer/transcribe`
+
+**Documentation**: `/docs/technical/VOXFORMER_DEPLOYMENT.md`
+
+### Service Dependencies
+
+| Service | Port | Depends On | Safe to Restart |
+|---------|------|------------|-----------------|
+| Frontend | 3000 | Backend | Yes |
+| Backend | 5000 | Blender MCP, GPU tunnel | Yes (with care) |
+| Blender MCP | 9876 | Xvfb | Yes (use startup script) |
+| GPU API | 5001 | Vast.ai instance | Check GPU first |
+
+### Before Making Changes
+
+1. **Check all services are running**:
+   ```bash
+   pm2 status
+   ss -tlnp | grep -E '3000|5000|9876'
+   ```
+
+2. **Test critical endpoints**:
+   ```bash
+   curl http://localhost:5000/api/blender/health
+   curl http://localhost:5000/api/gpu/health
+   ```
+
+3. **After changes, verify**:
+   - Blender generation still works
+   - Lipsync still works
+   - No 500 errors in pm2 logs
+
+## GPU Server (Vast.ai - Updated December 2024)
+
+### Current Instance
+- **Host**: `80.188.223.202`
+- **SSH Port**: `17757`
+- **Alternative**: `ssh -p 31523 root@ssh2.vast.ai`
+- **GPU**: H100 or RTX 4090 (varies by instance)
+
+### Services Running on GPU
+1. **SadTalker API** (`/root/full_demo_api.py`) - Port 5001
+2. **Whisper STT** - Integrated in full_demo_api.py
+
+### GPU Backup Location (VPS)
+```
+/home/developer/gpu_backup_20241218/
+├── full_demo_api.py      # SadTalker + Whisper API
+└── fix_stt.py            # STT fixes
+```

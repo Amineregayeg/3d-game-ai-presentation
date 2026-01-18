@@ -68,3 +68,8 @@ checkpoints/
 *.7z
 *.db
 backend/instance/
+
+# Salesforce data (too large for git)
+backend/salesforce_data/
+backend/salesforce_docs/
+backend/backend.log

@@ -78,7 +78,7 @@ export function TechSlideWrapper({
               />
             ))}
           </div>
-          <span className="text-slate-500 text-sm font-mono">
+          <span className="text-slate-400 text-base font-mono font-bold">
             {String(slideNumber).padStart(2, '0')} / {String(totalSlides).padStart(2, '0')}
           </span>
         </div>

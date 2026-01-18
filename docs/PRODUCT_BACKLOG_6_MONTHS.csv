@@ -1,0 +1,379 @@
+Summary,Issue Type,Status,Description,Priority,Story Points,Epic Link,Labels,Component,Sprint,Acceptance Criteria
+"Epic 0.1: Salesforce Demo (DONE)",Epic,Done,"Salesforce Virtual Assistant demo with RAG and MCP",High,57,,"phase-0,done",Demo,,
+"Salesforce MCP API",Story,Done,"11 endpoints: query, describe, CRUD, limits",High,8,Epic 0.1: Salesforce Demo (DONE),"done,backend",Backend,Done,"- GET /status endpoint
+- POST /query for SOQL
+- GET /describe for metadata
+- CRUD operations working"
+"Salesforce Service (OAuth)",Story,Done,"Client credentials OAuth flow for Salesforce",High,5,Epic 0.1: Salesforce Demo (DONE),"done,oauth",Backend,Done,"- OAuth token acquisition
+- Connection management
+- Org info retrieval"
+"7-Layer RAG Pipeline",Story,Done,"Query analysis → retrieval → generation → validation",High,13,Epic 0.1: Salesforce Demo (DONE),"done,rag,ai",Backend,Done,"- Query analysis with intent detection
+- Dense + sparse retrieval
+- RRF fusion
+- Cross-encoder reranking
+- GPT-4o generation
+- Validation scoring"
+"Consultant Avatar UI",Story,Done,"Avatar display with status indicators",High,5,Epic 0.1: Salesforce Demo (DONE),"done,ui",Frontend,Done,"- Avatar video display
+- Listening/thinking/speaking states
+- Status indicator"
+"Conversation Panel",Story,Done,"Message history with speaker identification",High,5,Epic 0.1: Salesforce Demo (DONE),"done,ui",Frontend,Done,"- Message history
+- User/assistant speaker identification
+- Timestamps"
+"RAG Context Visualization",Story,Done,"Real-time pipeline stage display",High,5,Epic 0.1: Salesforce Demo (DONE),"done,ui",Frontend,Done,"- Pipeline stage progress
+- Retrieved documents display
+- Metrics visualization"
+"MCP Operations Panel",Story,Done,"Operations history and execution",High,3,Epic 0.1: Salesforce Demo (DONE),"done,ui",Frontend,Done,"- Operation cards
+- Execution history
+- Status indicators"
+"Settings Panel",Story,Done,"Voice, connection, debug settings",Medium,3,Epic 0.1: Salesforce Demo (DONE),"done,ui",Frontend,Done,"- Voice selection
+- Debug mode toggle
+- Connection status"
+"Greeting Modal",Story,Done,"Onboarding persona introduction",Medium,2,Epic 0.1: Salesforce Demo (DONE),"done,ui",Frontend,Done,"- Avatar introduction
+- Getting started guide"
+"Salesforce Demo Page",Story,Done,"Full page integration of all components",High,8,Epic 0.1: Salesforce Demo (DONE),"done,ui",Frontend,Done,"- 3-column layout
+- All components integrated
+- ElevenLabs voice working"
+"Epic 0.2: Platform Infrastructure (DONE)",Epic,Done,"Core platform infrastructure",High,23,,"phase-0,done",Platform,,
+"Flask App Framework",Story,Done,"SQLAlchemy ORM, CORS, routing",High,5,Epic 0.2: Platform Infrastructure (DONE),"done,backend",Backend,Done,"- Flask app initialized
+- SQLAlchemy ORM configured
+- CORS for localhost and VPS"
+"Database Models",Story,Done,"Task, Team, Activity, Milestone models",High,5,Epic 0.2: Platform Infrastructure (DONE),"done,database",Backend,Done,"- 8 models created
+- Migrations working"
+"Next.js API Proxy Routes",Story,Done,"11 proxy routes for Salesforce APIs",High,5,Epic 0.2: Platform Infrastructure (DONE),"done,api",Frontend,Done,"- All routes proxying to Flask
+- Error handling"
+"ElevenLabs Hook",Story,Done,"WebSocket integration for voice",High,5,Epic 0.2: Platform Infrastructure (DONE),"done,voice",Frontend,Done,"- useElevenLabsConversation hook
+- WebSocket connection management"
+"Avatar Library",Story,Done,"6 avatars with metadata",Medium,3,Epic 0.2: Platform Infrastructure (DONE),"done,avatars",Frontend,Done,"- 3 English avatars
+- 3 French avatars
+- Metadata and expertise levels"
+"Epic 1.1: Critical Integration Fixes",Epic,In Progress,"Fix blocking integration issues",Critical,14,,"phase-1,integration",Integration,Sprint 1,
+"Register Flask Blueprints",Story,In Progress,"Add salesforce_rag_bp and salesforce_mcp_bp to app.py",Critical,1,Epic 1.1: Critical Integration Fixes,"blocking,backend",Backend,Sprint 1,"- Import blueprints
+- Register with app
+- Test endpoints return 200"
+"Move Salesforce Credentials to .env",Story,To Do,"Remove hardcoded OAuth credentials",Critical,2,Epic 1.1: Critical Integration Fixes,"security,config",Backend,Sprint 1,"- SF_CLIENT_ID in .env
+- SF_CLIENT_SECRET in .env
+- SF_LOGIN_URL in .env"
+"Run Data Ingestion Pipeline",Story,To Do,"Execute ingestion scripts to create FAISS index",High,3,Epic 1.1: Critical Integration Fixes,"data,rag",Backend,Sprint 1,"- Run ingest_salesforce_docs.py
+- Run ingest_salesforce_faiss.py
+- Verify index created"
+"Index Salesforce Documentation",Story,To Do,"Ingest 1000+ Salesforce help documents",High,5,Epic 1.1: Critical Integration Fixes,"data,rag",Backend,Sprint 1,"- Download docs
+- Parse and chunk
+- Generate embeddings
+- Store in FAISS"
+"End-to-End Demo Testing",Story,To Do,"Verify complete demo flow works",High,3,Epic 1.1: Critical Integration Fixes,"testing,qa",QA,Sprint 1,"- Voice queries work
+- Text queries work
+- MCP operations work
+- Real RAG responses"
+"Epic 1.2: Authentication System",Epic,To Do,"User authentication and session management",Critical,25,,"phase-1,auth,security",Auth,Sprint 2,
+"User Database Model",Story,To Do,"Create User table with org relationships",Critical,3,Epic 1.2: Authentication System,"database,auth",Backend,Sprint 2,"- User table created
+- id, email, password_hash, org_id, role, created_at
+- Foreign key to Organization"
+"Password Hashing (bcrypt)",Story,To Do,"Secure password storage",Critical,2,Epic 1.2: Authentication System,"security,auth",Backend,Sprint 2,"- bcrypt hashing on registration
+- Verification on login"
+"JWT Token Generation",Story,To Do,"JWT access and refresh tokens",Critical,3,Epic 1.2: Authentication System,"auth,jwt",Backend,Sprint 2,"- 24h access token expiry
+- Refresh token flow
+- Token payload with user_id, org_id, role"
+"Auth Middleware",Story,To Do,"Protect API routes with auth",Critical,3,Epic 1.2: Authentication System,"auth,middleware",Backend,Sprint 2,"- @token_required decorator
+- Extract user from token
+- Inject into request context"
+"Login API Endpoint",Story,To Do,"POST /api/auth/login",Critical,3,Epic 1.2: Authentication System,"api,auth",Backend,Sprint 2,"- Validate credentials
+- Return access + refresh tokens
+- Set secure cookies"
+"Register API Endpoint",Story,To Do,"POST /api/auth/register",Critical,3,Epic 1.2: Authentication System,"api,auth",Backend,Sprint 2,"- Validate input
+- Create user
+- Return tokens"
+"Connect Login UI to Backend",Story,In Progress,"Wire login page to real API",High,3,Epic 1.2: Authentication System,"ui,auth",Frontend,Sprint 2,"- Call POST /api/auth/login
+- Store token
+- Redirect to dashboard"
+"Google OAuth Integration",Story,To Do,"Continue with Google button",High,5,Epic 1.2: Authentication System,"oauth,google",Backend,Sprint 2,"- OAuth flow complete
+- Create/link user
+- Return tokens"
+"Epic 1.3: Multi-Tenancy Foundation",Epic,To Do,"Organization isolation",High,21,,"phase-1,multi-tenant",Platform,Sprint 3,
+"Organization Database Model",Story,To Do,"Organization table with settings",High,5,Epic 1.3: Multi-Tenancy Foundation,"database,multi-tenant",Backend,Sprint 3,"- id, name, domain, plan, settings
+- created_at, updated_at"
+"User-Organization Relationship",Story,To Do,"Users belong to orgs with roles",High,3,Epic 1.3: Multi-Tenancy Foundation,"database,rbac",Backend,Sprint 3,"- org_id on User
+- Role per organization"
+"Organization API Endpoints",Story,To Do,"CRUD for organizations",High,5,Epic 1.3: Multi-Tenancy Foundation,"api,multi-tenant",Backend,Sprint 3,"- Create org
+- List user orgs
+- Update settings
+- Invite users"
+"Data Isolation Middleware",Story,To Do,"Filter all queries by org_id",Critical,5,Epic 1.3: Multi-Tenancy Foundation,"security,multi-tenant",Backend,Sprint 3,"- Inject org_id filter
+- Prevent cross-tenant access"
+"Organization Selector UI",Story,To Do,"Switch between organizations",Medium,3,Epic 1.3: Multi-Tenancy Foundation,"ui,multi-tenant",Frontend,Sprint 3,"- Dropdown in header
+- Switch org context"
+"Epic 1.4: Dashboard Enhancement",Epic,To Do,"Complete dashboard functionality",High,18,,"phase-1,dashboard",Frontend,Sprint 4,
+"Dashboard Home Completion",Story,In Progress,"Real stats and recent sessions",High,5,Epic 1.4: Dashboard Enhancement,"ui,dashboard",Frontend,Sprint 4,"- Stats from API
+- Recent sessions
+- Avatar quick access"
+"Session History",Story,To Do,"List past conversations",High,5,Epic 1.4: Dashboard Enhancement,"ui,history",Frontend,Sprint 4,"- Conversation list
+- Timestamps
+- Transcripts viewable"
+"Usage Statistics API",Story,To Do,"Track usage metrics",High,3,Epic 1.4: Dashboard Enhancement,"api,analytics",Backend,Sprint 4,"- Queries per day
+- Tokens used
+- Sessions count"
+"Settings Page",Story,To Do,"User preferences and API keys",Medium,5,Epic 1.4: Dashboard Enhancement,"ui,settings",Frontend,Sprint 4,"- Profile settings
+- Notification preferences
+- API key management"
+"Epic 2.1: Harbyx Integration",Epic,To Do,"Integrate Harbyx governance platform",Critical,21,,"phase-2,harbyx,governance",Governance,Sprint 5,
+"Harbyx SDK Setup",Story,To Do,"Install and configure aasp-sdk",Critical,3,Epic 2.1: Harbyx Integration,"harbyx,sdk",Backend,Sprint 5,"- Install aasp-sdk
+- Configure API key
+- Health check passes"
+"Policy Configuration (Type A/B/C)",Story,To Do,"Create 3 policy types in Harbyx",Critical,5,Epic 2.1: Harbyx Integration,"harbyx,policies",Backend,Sprint 5,"- Type A: Acknowledgement
+- Type B: Approval required
+- Type C: Go/No-Go"
+"@governed_action Decorator",Story,To Do,"Wrap agent actions with governance",Critical,8,Epic 2.1: Harbyx Integration,"harbyx,decorator",Backend,Sprint 5,"- Decorator implementation
+- Call Harbyx /ingest
+- Handle all response types"
+"Handle ALLOW/BLOCK/REQUIRE_APPROVAL",Story,To Do,"Process Harbyx decisions",Critical,5,Epic 2.1: Harbyx Integration,"harbyx,logic",Backend,Sprint 5,"- ALLOW: proceed
+- BLOCK: raise exception
+- REQUIRE_APPROVAL: wait"
+"Epic 2.2: Approval Workflow UI",Epic,To Do,"Approval inbox and management",High,23,,"phase-2,approvals,ui",Frontend,Sprint 6,
+"Approval Inbox Page",Story,To Do,"List pending approvals",High,8,Epic 2.2: Approval Workflow UI,"ui,approvals",Frontend,Sprint 6,"- Fetch from Harbyx API
+- List view with filters
+- Sort by priority/date"
+"Approval Card Component",Story,To Do,"Approve/reject with context",High,5,Epic 2.2: Approval Workflow UI,"ui,approvals",Frontend,Sprint 6,"- Action context display
+- Diff view when available
+- Approve/reject buttons"
+"Harbyx Webhook Handler",Story,To Do,"Receive real-time events",High,5,Epic 2.2: Approval Workflow UI,"webhooks,harbyx",Backend,Sprint 6,"- Webhook endpoint
+- Signature verification
+- Event processing"
+"Real-time Approval Updates",Story,To Do,"Push updates via WebSocket",High,5,Epic 2.2: Approval Workflow UI,"websocket,realtime",Backend,Sprint 6,"- WebSocket channel
+- Push approval changes
+- UI auto-update"
+"Epic 2.3: Audit & Compliance",Epic,To Do,"Audit log viewing and export",High,14,,"phase-2,audit,compliance",Audit,Sprint 7,
+"Audit Log Viewer",Story,To Do,"Display Harbyx audit logs",High,5,Epic 2.3: Audit & Compliance,"ui,audit",Frontend,Sprint 7,"- Timeline view
+- Action details on expand
+- Pagination"
+"Audit Search & Filters",Story,To Do,"Filter audit logs",Medium,3,Epic 2.3: Audit & Compliance,"ui,audit",Frontend,Sprint 7,"- Date range filter
+- Agent filter
+- Action type filter"
+"Audit Export (CSV/JSON)",Story,To Do,"Download filtered logs",Medium,3,Epic 2.3: Audit & Compliance,"export,audit",Frontend,Sprint 7,"- CSV export
+- JSON export
+- Filtered results"
+"Action Receipt Display",Story,To Do,"Show cryptographic receipts",Medium,3,Epic 2.3: Audit & Compliance,"ui,compliance",Frontend,Sprint 7,"- Receipt hash display
+- Verification link"
+"Epic 2.4: Workflow Engine",Epic,To Do,"BUILD/RUN workflow management",High,21,,"phase-2,workflow",Workflow,Sprint 8,
+"Workflow State Machine",Story,To Do,"Define BUILD workflow phases",High,8,Epic 2.4: Workflow Engine,"workflow,backend",Backend,Sprint 8,"- Discovery → Scoping → Design → Review → Delivery
+- State transitions
+- History tracking"
+"Phase Gate UI",Story,To Do,"Visual workflow timeline",High,5,Epic 2.4: Workflow Engine,"ui,workflow",Frontend,Sprint 8,"- Timeline visualization
+- Current phase highlighted
+- Transition buttons"
+"Phase Transition API",Story,To Do,"API for phase changes",High,5,Epic 2.4: Workflow Engine,"api,workflow",Backend,Sprint 8,"- POST /workflow/transition
+- Harbyx check on transition
+- Return new state"
+"Workflow History",Story,To Do,"Track all transitions",Medium,3,Epic 2.4: Workflow Engine,"history,workflow",Backend,Sprint 8,"- Timestamp per transition
+- User who triggered
+- Approval reference"
+"Epic 2.5: Backlog Management",Epic,To Do,"Backlog items and kanban board",High,21,,"phase-2,backlog",Backlog,Sprint 9,
+"Backlog Item Model",Story,To Do,"Epic, Story, Task, Bug types",High,3,Epic 2.5: Backlog Management,"database,backlog",Backend,Sprint 9,"- Item types
+- Parent-child relationships
+- Status workflow"
+"Backlog CRUD API",Story,To Do,"Create, read, update, delete items",High,5,Epic 2.5: Backlog Management,"api,backlog",Backend,Sprint 9,"- POST /backlog/items
+- GET /backlog/items
+- PUT /backlog/items/:id
+- DELETE /backlog/items/:id"
+"Kanban Board UI",Story,To Do,"Drag-and-drop board",High,8,Epic 2.5: Backlog Management,"ui,kanban",Frontend,Sprint 9,"- Customizable columns
+- Drag-and-drop cards
+- Swimlanes
+- Filters"
+"Backlog Item Detail View",Story,To Do,"Full item view",High,5,Epic 2.5: Backlog Management,"ui,backlog",Frontend,Sprint 9,"- All item fields
+- Comments
+- History
+- Attachments"
+"Epic 3.1: Agent Orchestration",Epic,To Do,"Agent registry and coordination",High,19,,"phase-3,agents",Agents,Sprint 10,
+"Agent Registry",Story,To Do,"Register 7 agent types",High,5,Epic 3.1: Agent Orchestration,"agents,registry",Backend,Sprint 10,"- Agent metadata
+- Capabilities
+- Configuration schema"
+"Agent Configuration per Org",Story,To Do,"Org-specific agent settings",High,3,Epic 3.1: Agent Orchestration,"agents,config",Backend,Sprint 10,"- Enable/disable agents
+- Parameters per org"
+"Agent Health Monitoring",Story,To Do,"Track agent status",High,3,Epic 3.1: Agent Orchestration,"agents,monitoring",Backend,Sprint 10,"- Heartbeat
+- Status tracking
+- Error logging"
+"Agent Orchestrator",Story,To Do,"Invoke agents by phase",Critical,8,Epic 3.1: Agent Orchestration,"agents,orchestrator",Backend,Sprint 10,"- Phase-to-agent mapping
+- Input/output passing
+- Error handling"
+"Epic 3.2: Discovery Agent",Epic,To Do,"Platform scanning and risk detection",High,26,,"phase-3,agents,discovery",Agents,Sprint 11,
+"Platform Scanner",Story,To Do,"Scan Salesforce org metadata",High,13,Epic 3.2: Discovery Agent,"agents,discovery",Backend,Sprint 11,"- Metadata extraction
+- As-Is snapshot
+- Customization mapping"
+"Risk Detection Engine",Story,To Do,"Identify risks automatically",High,8,Epic 3.2: Discovery Agent,"agents,risk",Backend,Sprint 11,"- Security risks
+- Performance risks
+- Tech debt
+- Risk scoring"
+"Discovery Report Generator",Story,To Do,"Generate findings report",Medium,5,Epic 3.2: Discovery Agent,"agents,reports",Backend,Sprint 11,"- PDF/HTML output
+- Executive summary
+- Detailed findings"
+"Epic 3.3: Scoping Agent",Epic,To Do,"Requirements to backlog",High,21,,"phase-3,agents,scoping",Agents,Sprint 12,
+"Requirement Analyzer",Story,To Do,"Parse natural language requirements",High,8,Epic 3.3: Scoping Agent,"agents,nlp",Backend,Sprint 12,"- NLP parsing
+- Entity extraction
+- Ambiguity detection"
+"Epic/Story Generator",Story,To Do,"Auto-generate backlog items",High,8,Epic 3.3: Scoping Agent,"agents,backlog",Backend,Sprint 12,"- Generate Epics
+- Break into Stories
+- Write acceptance criteria"
+"Estimation Engine",Story,To Do,"Suggest story points",Medium,5,Epic 3.3: Scoping Agent,"agents,estimation",Backend,Sprint 12,"- Complexity analysis
+- Point suggestion
+- Confidence score"
+"Epic 3.4: Solution Designer Agent",Epic,To Do,"Technical design generation",High,23,,"phase-3,agents,design",Agents,Sprint 13,
+"Design Document Generator",Story,To Do,"Generate solution designs",High,13,Epic 3.4: Solution Designer Agent,"agents,design",Backend,Sprint 13,"- Solution overview
+- Data model
+- Integration points
+- Configuration specs"
+"ADR Generator",Story,To Do,"Create ADRs from decisions",High,5,Epic 3.4: Solution Designer Agent,"agents,adr",Backend,Sprint 13,"- Context/problem
+- Options considered
+- Decision rationale"
+"Diagram Generator (Mermaid)",Story,To Do,"Auto-generate diagrams",Medium,5,Epic 3.4: Solution Designer Agent,"agents,diagrams",Backend,Sprint 13,"- ERD diagrams
+- Sequence diagrams
+- Architecture diagrams"
+"Epic 3.5: Delivery Agent",Epic,To Do,"Deployment execution with governance",High,24,,"phase-3,agents,delivery",Agents,Sprint 15,
+"Enhanced MCP Integration",Story,To Do,"Complex multi-step operations",High,8,Epic 3.5: Delivery Agent,"agents,mcp",Backend,Sprint 15,"- Multi-step execution
+- Transaction support
+- Validation checks"
+"Deployment Orchestration",Story,To Do,"Coordinate deployment steps",High,8,Epic 3.5: Delivery Agent,"agents,deployment",Backend,Sprint 15,"- Step sequencing
+- Validation gates
+- Progress tracking"
+"Rollback Capability",Story,To Do,"Automatic rollback on failure",High,5,Epic 3.5: Delivery Agent,"agents,rollback",Backend,Sprint 15,"- Snapshot before deploy
+- Rollback trigger
+- Notification"
+"Type C Governance Integration",Story,To Do,"Production approval required",Critical,3,Epic 3.5: Delivery Agent,"agents,governance",Backend,Sprint 15,"- Type C policy check
+- Block until approved"
+"Epic 4.1: Jira Integration",Epic,To Do,"Bi-directional Jira sync",High,18,,"phase-4,integration,jira",Integrations,Sprint 17,
+"Jira OAuth Connection",Story,To Do,"Connect to Jira Cloud",High,5,Epic 4.1: Jira Integration,"oauth,jira",Backend,Sprint 17,"- OAuth 2.0 flow
+- Secure token storage
+- Connection health check"
+"Jira Bi-directional Sync",Story,To Do,"Sync issues both ways",High,13,Epic 4.1: Jira Integration,"sync,jira",Backend,Sprint 17,"- Epic/Story/Task/Bug sync
+- Status mapping
+- Comment sync
+- Webhooks"
+"Epic 4.2: Slack Integration",Epic,To Do,"Approval notifications in Slack",Medium,5,,"phase-4,integration,slack",Integrations,Sprint 19,
+"Slack App",Story,To Do,"Approval notifications and commands",Medium,5,Epic 4.2: Slack Integration,"slack,notifications",Backend,Sprint 19,"- Approval cards
+- Slash commands
+- Channel notifications"
+"Epic 5.1: Analytics & Billing",Epic,To Do,"Metrics dashboard and billing",High,24,,"phase-5,analytics,billing",Analytics,Sprint 21,
+"Delivery Metrics Dashboard",Story,To Do,"Track delivery KPIs",High,8,Epic 5.1: Analytics & Billing,"analytics,metrics",Frontend,Sprint 21,"- Lead time
+- Cycle time
+- Throughput
+- Deployment frequency"
+"Agent Metrics from Harbyx",Story,To Do,"Pull agent performance data",High,3,Epic 5.1: Analytics & Billing,"analytics,harbyx",Backend,Sprint 21,"- Success rate
+- Approval wait time
+- Actions blocked"
+"Usage Tracking",Story,To Do,"Track platform usage",High,5,Epic 5.1: Analytics & Billing,"usage,billing",Backend,Sprint 21,"- API calls
+- Agent executions
+- Storage used"
+"Stripe Integration",Story,To Do,"Subscription billing",High,8,Epic 5.1: Analytics & Billing,"billing,stripe",Backend,Sprint 21,"- Subscription plans
+- Usage-based billing
+- Invoicing"
+"Epic 5.2: Security & Compliance",Epic,To Do,"Security hardening",Critical,19,,"phase-5,security",Security,Sprint 22,
+"Security Audit",Story,To Do,"OWASP Top 10 review",Critical,8,Epic 5.2: Security & Compliance,"security,audit",Security,Sprint 22,"- Vulnerability scan
+- Dependency audit
+- Penetration testing"
+"Rate Limiting",Story,To Do,"API rate limits",High,3,Epic 5.2: Security & Compliance,"security,api",Backend,Sprint 22,"- Per-org limits
+- Per-endpoint limits
+- Rate limit headers"
+"Input Validation Hardening",Story,To Do,"Validate all inputs",High,3,Epic 5.2: Security & Compliance,"security,validation",Backend,Sprint 22,"- Schema validation
+- Sanitization
+- XSS prevention"
+"Secrets Management",Story,To Do,"Secure credential storage",Critical,5,Epic 5.2: Security & Compliance,"security,secrets",Backend,Sprint 22,"- All secrets in vault
+- Rotation support
+- Audit logging"
+"Epic 5.3: Infrastructure",Epic,To Do,"Production deployment",High,23,,"phase-5,infrastructure",Infrastructure,Sprint 23,
+"Kubernetes Deployment",Story,To Do,"Deploy to K8s cluster",High,8,Epic 5.3: Infrastructure,"kubernetes,deployment",DevOps,Sprint 23,"- Helm charts
+- ConfigMaps/Secrets
+- TLS termination"
+"CI/CD Pipeline",Story,To Do,"Automated deployment",High,5,Epic 5.3: Infrastructure,"cicd,automation",DevOps,Sprint 23,"- GitHub Actions
+- Build/test/deploy
+- Environment promotion"
+"Performance Testing",Story,To Do,"Load testing",High,5,Epic 5.3: Infrastructure,"testing,performance",QA,Sprint 23,"- 100 concurrent users
+- Response time targets
+- Error rate < 1%"
+"Auto-scaling Setup",Story,To Do,"HPA configuration",Medium,5,Epic 5.3: Infrastructure,"kubernetes,scaling",DevOps,Sprint 23,"- CPU-based scaling
+- Memory-based scaling
+- Min/max replicas"
+"Epic 5.4: Launch Preparation",Epic,To Do,"Go-to-market readiness",High,21,,"phase-5,launch",Launch,Sprint 24,
+"Landing Page",Story,To Do,"Marketing website",High,8,Epic 5.4: Launch Preparation,"marketing,ui",Frontend,Sprint 24,"- Hero section
+- Features
+- Pricing
+- CTA"
+"Documentation Site",Story,To Do,"User and API docs",High,5,Epic 5.4: Launch Preparation,"docs,support",Frontend,Sprint 24,"- Getting started
+- User guide
+- API reference"
+"Onboarding Flow",Story,To Do,"Guided setup",High,5,Epic 5.4: Launch Preparation,"onboarding,ux",Frontend,Sprint 24,"- Step-by-step wizard
+- Connect Salesforce
+- First agent run"
+"Beta Testing",Story,To Do,"Customer validation",Critical,3,Epic 5.4: Launch Preparation,"beta,testing",QA,Sprint 24,"- 5 beta customers
+- Feedback collection
+- Issue resolution"
+"Epic 2.6: RUN Workflow Engine",Epic,To Do,"Operations workflow for incident handling",Critical,21,,"phase-2,workflow,run",Workflow,,
+"RUN Workflow State Machine",Story,To Do,"Intake → Triage → Execute → Validate → Close workflow",Critical,8,Epic 2.6: RUN Workflow Engine,"workflow,run",Backend,Sprint 8,"- State machine implementation
+- Triage routing logic
+- Validation gates"
+"RUN Triage UI",Story,To Do,"List pending items, assign severity, route to human/agent",High,5,Epic 2.6: RUN Workflow Engine,"ui,triage",Frontend,Sprint 8,"- Pending items list
+- Severity assignment
+- Human/agent routing"
+"Low-Risk Auto-Execute",Story,To Do,"Pre-approved actions execute without human approval",High,5,Epic 2.6: RUN Workflow Engine,"automation,run",Backend,Sprint 9,"- Pre-approval rules
+- Auto-execution engine
+- Audit logging"
+"RUN Incident Reports",Story,To Do,"Generate incident/change reports automatically",Medium,3,Epic 2.6: RUN Workflow Engine,"reports,incidents",Backend,Sprint 9,"- Report templates
+- Auto-generation
+- Export formats"
+"Epic 2.7: Human Role Management",Epic,To Do,"5 human roles for governance workflow",High,13,,"phase-2,roles,governance",Governance,,
+"Human Role Models",Story,To Do,"BusinessOwner, ProductOwner, TechLead, ReleaseMgr, SupportLead roles",High,5,Epic 2.7: Human Role Management,"database,roles",Backend,Sprint 9,"- Role definitions
+- Permission sets
+- Role hierarchy"
+"Role Assignment per Project",Story,To Do,"Assign users to roles per project/engagement",High,3,Epic 2.7: Human Role Management,"assignment,roles",Backend,Sprint 9,"- Project-role mapping
+- User assignment UI
+- Validation rules"
+"Role-Based Approval Routing",Story,To Do,"Approvals route to correct role based on phase",High,5,Epic 2.7: Human Role Management,"approvals,routing",Backend,Sprint 10,"- Phase-role mapping
+- Routing logic
+- Escalation rules"
+"Epic 3.8: Knowledge Layer",Epic,To Do,"Client context, standards, patterns for agents",High,23,,"phase-3,knowledge,ai",Knowledge,,
+"Knowledge Base Model",Story,To Do,"Client context, standards, constraints stored per org",High,5,Epic 3.8: Knowledge Layer,"database,knowledge",Backend,Sprint 6,"- Context model
+- Standards storage
+- Constraint rules"
+"Pattern Library",Story,To Do,"Allowed/forbidden patterns for platform best practices",High,5,Epic 3.8: Knowledge Layer,"patterns,bestpractices",Backend,Sprint 7,"- Pattern definitions
+- Allow/forbid rules
+- Platform mapping"
+"Template Management",Story,To Do,"Document templates (Design, ADR, Runbook, etc.)",High,5,Epic 3.8: Knowledge Layer,"templates,documents",Backend,Sprint 7,"- Template CRUD
+- Variable substitution
+- Version control"
+"Agent Knowledge Injection",Story,To Do,"Agents access knowledge layer during execution",Critical,8,Epic 3.8: Knowledge Layer,"agents,knowledge",Backend,Sprint 8,"- Knowledge API
+- Context injection
+- Pattern validation"
+"Epic 5.5: GDPR Compliance",Epic,To Do,"EU data protection compliance",High,16,,"phase-5,gdpr,compliance",Compliance,,
+"Data Localization",Story,To Do,"EU data stored in EU region, configurable per org",High,5,Epic 5.5: GDPR Compliance,"gdpr,infrastructure",DevOps,Sprint 22,"- Regional storage
+- Org configuration
+- Data routing"
+"Right to Erasure",Story,To Do,"User data deletion API with cascade",Critical,5,Epic 5.5: GDPR Compliance,"gdpr,api",Backend,Sprint 22,"- Deletion API
+- Cascade logic
+- Audit trail"
+"Data Export",Story,To Do,"Export all user data in portable format",High,3,Epic 5.5: GDPR Compliance,"gdpr,export",Backend,Sprint 23,"- Export API
+- Portable format (JSON)
+- Download mechanism"
+"Consent Management",Story,To Do,"Track and manage user consent records",High,3,Epic 5.5: GDPR Compliance,"gdpr,consent",Backend,Sprint 23,"- Consent model
+- Tracking UI
+- Audit logging"
+"Epic 6.1: Documentation Templates",Epic,To Do,"Standard document templates for consulting",Medium,18,,"phase-6,templates,docs",Documentation,,
+"Project Brief Template",Story,To Do,"Standardized project brief document template",Medium,2,Epic 6.1: Documentation Templates,"templates,docs",Frontend,Sprint 10,"- Template structure
+- Variable fields
+- Export formats"
+"As-Is Snapshot Template",Story,To Do,"Template for documenting current state analysis",Medium,3,Epic 6.1: Documentation Templates,"templates,discovery",Frontend,Sprint 11,"- State sections
+- Risk areas
+- Findings format"
+"Solution Design Template",Story,To Do,"Comprehensive solution design document structure",Medium,3,Epic 6.1: Documentation Templates,"templates,design",Frontend,Sprint 11,"- Design sections
+- Technical specs
+- Diagrams"
+"Test Plan Template",Story,To Do,"Test plan document with coverage sections",Medium,2,Epic 6.1: Documentation Templates,"templates,qa",Frontend,Sprint 11,"- Test scenarios
+- Coverage matrix
+- Sign-off"
+"Release Plan Template",Story,To Do,"Release planning and rollout template",Medium,2,Epic 6.1: Documentation Templates,"templates,release",Frontend,Sprint 11,"- Release phases
+- Rollback plan
+- Checklist"
+"Go-Live Report Template",Story,To Do,"Post-deployment go-live report template",Medium,2,Epic 6.1: Documentation Templates,"templates,golive",Frontend,Sprint 11,"- Go-live status
+- Issues log
+- Sign-off"
+"Runbook Template",Story,To Do,"Operational runbook document structure",Medium,2,Epic 6.1: Documentation Templates,"templates,ops",Frontend,Sprint 11,"- Procedure steps
+- Troubleshooting
+- Contacts"
+"Incident Report Template",Story,To Do,"Incident documentation and post-mortem template",Medium,2,Epic 6.1: Documentation Templates,"templates,incidents",Frontend,Sprint 11,"- Incident timeline
+- Root cause
+- Action items"

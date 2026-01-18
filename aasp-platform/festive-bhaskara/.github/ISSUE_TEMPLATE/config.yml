@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://aasp-mvp.aminereg.com/docs
+    about: Check the documentation for answers
+  - name: Security Issues
+    url: https://github.com/Amineregayeg/aasp-platform/security/policy
+    about: Report security vulnerabilities privately
+  - name: SDK Issues
+    url: https://github.com/Amineregayeg/aasp-sdk/issues
+    about: Report issues with the Python SDK

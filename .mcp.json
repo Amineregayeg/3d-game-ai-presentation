@@ -18,6 +18,20 @@
         "mcp"
       ],
       "env": {}
+    },
+    "salesforce": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@tsmztech/mcp-server-salesforce"
+      ],
+      "env": {
+        "SALESFORCE_USERNAME": "amine.regayeg589@agentforce.com",
+        "SALESFORCE_PASSWORD": "zyQti0-waqbit-feqrex",
+        "SALESFORCE_TOKEN": "SFt0rlv2cKpoqzPs0hL81aeIQ",
+        "SALESFORCE_LOGIN_URL": "https://login.salesforce.com"
+      }
     }
   }
 }

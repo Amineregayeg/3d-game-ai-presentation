@@ -128,6 +128,216 @@ class GlossaryTerm(db.Model):
     component = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# ============== Multi-Tenant Auth Models ==============
+
+class Organization(db.Model):
+    """Organization/Tenant model for multi-tenancy"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    slug = db.Column(db.String(50), unique=True, nullable=False)  # URL-friendly identifier
+    domain = db.Column(db.String(100))  # Optional custom domain
+    plan = db.Column(db.String(20), default='free')  # free, starter, pro, enterprise
+    settings = db.Column(db.Text)  # JSON for org-specific settings
+    salesforce_instance_url = db.Column(db.String(200))  # Connected Salesforce org
+    salesforce_access_token = db.Column(db.Text)  # Encrypted token
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    users = db.relationship('User', backref='organization', lazy=True)
+
+class User(db.Model):
+    """User model with organization membership"""
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256))  # Nullable for OAuth users
+    name = db.Column(db.String(100))
+    avatar_url = db.Column(db.String(500))
+
+    # Organization relationship
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    role = db.Column(db.String(20), default='member')  # owner, admin, member, viewer
+
+    # OAuth fields
+    oauth_provider = db.Column(db.String(20))  # google, microsoft, null for email
+    oauth_id = db.Column(db.String(100))  # Provider's user ID
+
+    # Status and tracking
+    is_active = db.Column(db.Boolean, default=True)
+    is_verified = db.Column(db.Boolean, default=False)
+    last_login = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class RefreshToken(db.Model):
+    """Store refresh tokens for JWT authentication"""
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(500), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    revoked = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='refresh_tokens')
+
+# ============== Session & Usage Models ==============
+
+class ConsultantSession(db.Model):
+    """Track consultant chat sessions"""
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(50), unique=True, nullable=False)  # UUID
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+
+    # Consultant info
+    consultant_id = db.Column(db.String(50), nullable=False)  # e.g., 'alex', 'sarah'
+    consultant_name = db.Column(db.String(100))
+    language = db.Column(db.String(10), default='en')  # en, fr
+
+    # Session metadata
+    title = db.Column(db.String(200))  # Auto-generated from first message
+    topic = db.Column(db.String(100))  # e.g., 'SOQL', 'Apex', 'Reports'
+    status = db.Column(db.String(20), default='active')  # active, ended, archived
+
+    # Usage tracking
+    message_count = db.Column(db.Integer, default=0)
+    tokens_used = db.Column(db.Integer, default=0)  # LLM tokens consumed
+    duration_seconds = db.Column(db.Integer, default=0)
+
+    # Timestamps
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ended_at = db.Column(db.DateTime)
+    last_message_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    user = db.relationship('User', backref='sessions')
+    messages = db.relationship('SessionMessage', backref='session', lazy=True, cascade='all, delete-orphan')
+
+class SessionMessage(db.Model):
+    """Individual messages within a session"""
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('consultant_session.id'), nullable=False)
+
+    role = db.Column(db.String(20), nullable=False)  # user, assistant
+    content = db.Column(db.Text, nullable=False)
+    tokens = db.Column(db.Integer, default=0)
+
+    # For RAG tracking
+    sources_used = db.Column(db.Text)  # JSON array of doc references
+    confidence_score = db.Column(db.Float)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class UsageStats(db.Model):
+    """Daily usage statistics per organization"""
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+
+    # Counts
+    sessions_count = db.Column(db.Integer, default=0)
+    messages_count = db.Column(db.Integer, default=0)
+    unique_users = db.Column(db.Integer, default=0)
+
+    # Token usage
+    tokens_used = db.Column(db.Integer, default=0)
+    tokens_limit = db.Column(db.Integer)  # Based on plan
+
+    # By consultant
+    consultant_breakdown = db.Column(db.Text)  # JSON: {"alex": 10, "sarah": 5}
+
+    # By topic
+    topic_breakdown = db.Column(db.Text)  # JSON: {"SOQL": 8, "Apex": 7}
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('organization_id', 'date', name='unique_org_date'),
+    )
+
+# ============== Governance Models ==============
+
+class GovernancePolicy(db.Model):
+    """Policy for governing agent actions"""
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    name = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.String(20))  # type_a, type_b, type_c
+    rules = db.Column(db.Text)  # JSON for policy rules
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    organization = db.relationship('Organization', backref='policies')
+
+class ApprovalRequest(db.Model):
+    """Approval requests for governed actions"""
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    policy_id = db.Column(db.Integer, db.ForeignKey('governance_policy.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    action_type = db.Column(db.String(50))  # create, update, delete, deploy, etc.
+    target = db.Column(db.String(200))  # Target entity (e.g., "Apex Class: MyController")
+    context = db.Column(db.Text)  # JSON with action context
+    status = db.Column(db.String(20), default='pending')  # pending, approved, rejected
+    decision_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    decision_reason = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    decided_at = db.Column(db.DateTime)
+
+    organization = db.relationship('Organization', backref='approval_requests')
+    policy = db.relationship('GovernancePolicy', backref='approval_requests')
+    requester = db.relationship('User', foreign_keys=[user_id], backref='submitted_approvals')
+    approver = db.relationship('User', foreign_keys=[decision_by], backref='decided_approvals')
+
+class AuditLog(db.Model):
+    """Audit log for all governance-related actions"""
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    action = db.Column(db.String(50))  # create, read, update, delete, approve, reject
+    entity_type = db.Column(db.String(50))  # policy, approval, pattern, knowledge
+    entity_id = db.Column(db.Integer)
+    description = db.Column(db.Text)
+    changes = db.Column(db.Text)  # JSON for before/after state
+    metadata = db.Column(db.Text)  # JSON for extra info
+    ip_address = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    organization = db.relationship('Organization', backref='audit_logs')
+    user = db.relationship('User', backref='audit_logs')
+
+class KnowledgeBase(db.Model):
+    """Knowledge base entries for AI context"""
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    category = db.Column(db.String(50))  # context, standard, constraint, reference
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text)  # JSON for structured content
+    tags = db.Column(db.Text)  # JSON array of tags
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    organization = db.relationship('Organization', backref='knowledge_entries')
+
+class Pattern(db.Model):
+    """Pattern library for code patterns and best practices"""
+    id = db.Column(db.Integer, primary_key=True)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    name = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.String(20))  # allowed, forbidden, recommended, deprecated
+    platform = db.Column(db.String(50))  # salesforce, general
+    pattern = db.Column(db.Text)  # JSON for pattern definition
+    description = db.Column(db.Text)
+    rationale = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    organization = db.relationship('Organization', backref='patterns')
+
 # ============== Auth Helpers ==============
 
 def generate_vault_token():
@@ -154,6 +364,1173 @@ def vault_auth_required(f):
             return jsonify({'error': 'Invalid token'}), 401
         return f(*args, **kwargs)
     return decorated
+
+# ============== User Auth Helpers ==============
+
+import secrets
+import re
+
+def generate_access_token(user):
+    """Generate a JWT access token for user authentication"""
+    payload = {
+        'exp': datetime.utcnow() + timedelta(hours=24),
+        'iat': datetime.utcnow(),
+        'type': 'access',
+        'user_id': user.id,
+        'email': user.email,
+        'org_id': user.organization_id,
+        'role': user.role
+    }
+    return jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
+
+def generate_refresh_token_value():
+    """Generate a secure random refresh token"""
+    return secrets.token_urlsafe(64)
+
+def hash_password(password):
+    """Hash a password using bcrypt"""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password, password_hash):
+    """Verify a password against its hash"""
+    return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
+
+def validate_email(email):
+    """Validate email format"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def validate_password(password):
+    """Validate password strength (min 8 chars, 1 upper, 1 lower, 1 number)"""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters"
+    if not re.search(r'[A-Z]', password):
+        return False, "Password must contain at least one uppercase letter"
+    if not re.search(r'[a-z]', password):
+        return False, "Password must contain at least one lowercase letter"
+    if not re.search(r'\d', password):
+        return False, "Password must contain at least one number"
+    return True, None
+
+def create_slug(name):
+    """Create URL-friendly slug from organization name"""
+    slug = re.sub(r'[^a-zA-Z0-9\s-]', '', name.lower())
+    slug = re.sub(r'[\s_]+', '-', slug)
+    slug = re.sub(r'-+', '-', slug).strip('-')
+    # Add random suffix to ensure uniqueness
+    return f"{slug}-{secrets.token_hex(3)}"
+
+def auth_required(f):
+    """Decorator to require user authentication"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        if not token:
+            return jsonify({'error': 'No token provided'}), 401
+        try:
+            payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            if payload.get('type') != 'access':
+                return jsonify({'error': 'Invalid token type'}), 401
+            # Get user and attach to request
+            user = User.query.get(payload['user_id'])
+            if not user or not user.is_active:
+                return jsonify({'error': 'User not found or inactive'}), 401
+            request.current_user = user
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expired'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Invalid token'}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+def get_current_user():
+    """Get current authenticated user from request"""
+    return getattr(request, 'current_user', None)
+
+def get_current_org_id():
+    """Get current organization ID from authenticated user"""
+    user = get_current_user()
+    return user.organization_id if user else None
+
+def org_required(f):
+    """Decorator requiring user to belong to an organization"""
+    @wraps(f)
+    def decorated(user, *args, **kwargs):
+        if not user.organization_id:
+            return jsonify({'error': 'Organization required. Please create or join an organization.'}), 403
+        return f(user, *args, **kwargs)
+    return decorated
+
+def org_admin_required(f):
+    """Decorator requiring user to be org admin or owner"""
+    @wraps(f)
+    def decorated(user, *args, **kwargs):
+        if not user.organization_id:
+            return jsonify({'error': 'Organization required'}), 403
+        if user.role not in ['owner', 'admin']:
+            return jsonify({'error': 'Admin privileges required'}), 403
+        return f(user, *args, **kwargs)
+    return decorated
+
+def filter_by_org(query, model, user):
+    """Filter query by user's organization (for multi-tenant data isolation)
+
+    Usage:
+        tasks = filter_by_org(Task.query, Task, user).all()
+    """
+    if hasattr(model, 'organization_id'):
+        return query.filter_by(organization_id=user.organization_id)
+    return query
+
+class OrgBoundMixin:
+    """Mixin for models that are organization-scoped"""
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable=True)
+
+    @classmethod
+    def get_for_org(cls, user):
+        """Get all records for user's organization"""
+        if not user.organization_id:
+            return cls.query.filter(False)  # Return empty
+        return cls.query.filter_by(organization_id=user.organization_id)
+
+    @classmethod
+    def get_one_for_org(cls, id, user):
+        """Get single record, ensuring it belongs to user's org"""
+        record = cls.query.get(id)
+        if not record:
+            return None
+        if hasattr(record, 'organization_id') and record.organization_id != user.organization_id:
+            return None
+        return record
+
+# ============== User Auth Routes ==============
+
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    """Register a new user and create their organization"""
+    data = request.json or {}
+
+    # Validate required fields
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+    name = data.get('name', '').strip()
+    org_name = data.get('organization_name', '').strip()
+
+    if not email or not password:
+        return jsonify({'error': 'Email and password are required'}), 400
+
+    if not validate_email(email):
+        return jsonify({'error': 'Invalid email format'}), 400
+
+    valid, error = validate_password(password)
+    if not valid:
+        return jsonify({'error': error}), 400
+
+    # Check if user already exists
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'Email already registered'}), 409
+
+    try:
+        # Create organization if name provided, otherwise use email domain
+        if not org_name:
+            org_name = email.split('@')[1].split('.')[0].title() + ' Workspace'
+
+        org = Organization(
+            name=org_name,
+            slug=create_slug(org_name),
+            plan='free'
+        )
+        db.session.add(org)
+        db.session.flush()  # Get org.id
+
+        # Create user as org owner
+        user = User(
+            email=email,
+            password_hash=hash_password(password),
+            name=name or email.split('@')[0],
+            organization_id=org.id,
+            role='owner',
+            is_verified=True  # Skip email verification for now
+        )
+        db.session.add(user)
+        db.session.flush()
+
+        # Generate tokens
+        access_token = generate_access_token(user)
+        refresh_token_value = generate_refresh_token_value()
+
+        # Store refresh token
+        refresh_token = RefreshToken(
+            token=refresh_token_value,
+            user_id=user.id,
+            expires_at=datetime.utcnow() + timedelta(days=30)
+        )
+        db.session.add(refresh_token)
+        db.session.commit()
+
+        log_activity('user_registered', f'User registered: {email}', f'New user {name} registered')
+
+        return jsonify({
+            'message': 'Registration successful',
+            'access_token': access_token,
+            'refresh_token': refresh_token_value,
+            'expires_in': 86400,  # 24 hours
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'name': user.name,
+                'role': user.role,
+                'organization': {
+                    'id': org.id,
+                    'name': org.name,
+                    'slug': org.slug,
+                    'plan': org.plan
+                }
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Registration failed: {str(e)}'}), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """Authenticate user and return tokens"""
+    data = request.json or {}
+
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+
+    if not email or not password:
+        return jsonify({'error': 'Email and password are required'}), 400
+
+    # Find user
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return jsonify({'error': 'Invalid email or password'}), 401
+
+    if not user.password_hash:
+        return jsonify({'error': 'Please use social login for this account'}), 401
+
+    if not verify_password(password, user.password_hash):
+        return jsonify({'error': 'Invalid email or password'}), 401
+
+    if not user.is_active:
+        return jsonify({'error': 'Account is deactivated'}), 401
+
+    try:
+        # Update last login
+        user.last_login = datetime.utcnow()
+
+        # Generate tokens
+        access_token = generate_access_token(user)
+        refresh_token_value = generate_refresh_token_value()
+
+        # Revoke old refresh tokens for this user (optional: keep last N)
+        RefreshToken.query.filter_by(user_id=user.id, revoked=False).update({'revoked': True})
+
+        # Store new refresh token
+        refresh_token = RefreshToken(
+            token=refresh_token_value,
+            user_id=user.id,
+            expires_at=datetime.utcnow() + timedelta(days=30)
+        )
+        db.session.add(refresh_token)
+        db.session.commit()
+
+        log_activity('user_login', f'User logged in: {email}', f'{user.name} logged in')
+
+        # Get organization
+        org_data = None
+        if user.organization:
+            org_data = {
+                'id': user.organization.id,
+                'name': user.organization.name,
+                'slug': user.organization.slug,
+                'plan': user.organization.plan
+            }
+
+        return jsonify({
+            'message': 'Login successful',
+            'access_token': access_token,
+            'refresh_token': refresh_token_value,
+            'expires_in': 86400,  # 24 hours
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'name': user.name,
+                'avatar_url': user.avatar_url,
+                'role': user.role,
+                'organization': org_data
+            }
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Login failed: {str(e)}'}), 500
+
+@app.route('/api/auth/refresh', methods=['POST'])
+def refresh_token():
+    """Refresh access token using refresh token"""
+    data = request.json or {}
+    token = data.get('refresh_token', '')
+
+    if not token:
+        return jsonify({'error': 'Refresh token is required'}), 400
+
+    # Find refresh token
+    stored_token = RefreshToken.query.filter_by(token=token, revoked=False).first()
+
+    if not stored_token:
+        return jsonify({'error': 'Invalid refresh token'}), 401
+
+    if stored_token.expires_at < datetime.utcnow():
+        stored_token.revoked = True
+        db.session.commit()
+        return jsonify({'error': 'Refresh token expired'}), 401
+
+    user = stored_token.user
+    if not user or not user.is_active:
+        return jsonify({'error': 'User not found or inactive'}), 401
+
+    try:
+        # Generate new access token
+        access_token = generate_access_token(user)
+
+        # Optionally rotate refresh token
+        new_refresh_token_value = generate_refresh_token_value()
+        stored_token.revoked = True
+
+        new_refresh_token = RefreshToken(
+            token=new_refresh_token_value,
+            user_id=user.id,
+            expires_at=datetime.utcnow() + timedelta(days=30)
+        )
+        db.session.add(new_refresh_token)
+        db.session.commit()
+
+        return jsonify({
+            'access_token': access_token,
+            'refresh_token': new_refresh_token_value,
+            'expires_in': 86400
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Token refresh failed: {str(e)}'}), 500
+
+@app.route('/api/auth/me', methods=['GET'])
+@auth_required
+def get_me():
+    """Get current authenticated user's profile"""
+    user = get_current_user()
+
+    org_data = None
+    if user.organization:
+        org_data = {
+            'id': user.organization.id,
+            'name': user.organization.name,
+            'slug': user.organization.slug,
+            'plan': user.organization.plan
+        }
+
+    return jsonify({
+        'id': user.id,
+        'email': user.email,
+        'name': user.name,
+        'avatar_url': user.avatar_url,
+        'role': user.role,
+        'is_verified': user.is_verified,
+        'last_login': user.last_login.isoformat() if user.last_login else None,
+        'created_at': user.created_at.isoformat(),
+        'organization': org_data
+    })
+
+@app.route('/api/auth/me', methods=['PUT'])
+@auth_required
+def update_me():
+    """Update current user's profile"""
+    user = get_current_user()
+    data = request.json or {}
+
+    if 'name' in data:
+        user.name = data['name'].strip()
+    if 'avatar_url' in data:
+        user.avatar_url = data['avatar_url']
+
+    try:
+        db.session.commit()
+        return jsonify({'message': 'Profile updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Update failed: {str(e)}'}), 500
+
+@app.route('/api/auth/logout', methods=['POST'])
+@auth_required
+def logout():
+    """Logout user by revoking refresh tokens"""
+    user = get_current_user()
+    data = request.json or {}
+    refresh_token = data.get('refresh_token', '')
+
+    try:
+        if refresh_token:
+            # Revoke specific token
+            RefreshToken.query.filter_by(token=refresh_token, user_id=user.id).update({'revoked': True})
+        else:
+            # Revoke all user's tokens
+            RefreshToken.query.filter_by(user_id=user.id, revoked=False).update({'revoked': True})
+
+        db.session.commit()
+        log_activity('user_logout', f'User logged out: {user.email}', f'{user.name} logged out')
+        return jsonify({'message': 'Logged out successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Logout failed: {str(e)}'}), 500
+
+@app.route('/api/auth/change-password', methods=['POST'])
+@auth_required
+def change_password():
+    """Change current user's password"""
+    user = get_current_user()
+    data = request.json or {}
+
+    current_password = data.get('current_password', '')
+    new_password = data.get('new_password', '')
+
+    if not current_password or not new_password:
+        return jsonify({'error': 'Current and new password are required'}), 400
+
+    if not user.password_hash:
+        return jsonify({'error': 'Cannot change password for OAuth accounts'}), 400
+
+    if not verify_password(current_password, user.password_hash):
+        return jsonify({'error': 'Current password is incorrect'}), 401
+
+    valid, error = validate_password(new_password)
+    if not valid:
+        return jsonify({'error': error}), 400
+
+    try:
+        user.password_hash = hash_password(new_password)
+        # Revoke all refresh tokens to force re-login
+        RefreshToken.query.filter_by(user_id=user.id, revoked=False).update({'revoked': True})
+        db.session.commit()
+
+        log_activity('password_changed', f'Password changed: {user.email}', f'{user.name} changed password')
+        return jsonify({'message': 'Password changed successfully. Please login again.'})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Password change failed: {str(e)}'}), 500
+
+# ============== Organization APIs ==============
+
+@app.route('/api/organizations', methods=['GET'])
+@auth_required
+def list_organizations(user):
+    """List organizations the user belongs to"""
+    # For now, return the user's organization
+    # In future, support multiple org memberships
+    if user.organization:
+        org = user.organization
+        member_count = User.query.filter_by(organization_id=org.id, is_active=True).count()
+        return jsonify({
+            'organizations': [{
+                'id': org.id,
+                'name': org.name,
+                'slug': org.slug,
+                'domain': org.domain,
+                'plan': org.plan,
+                'role': user.role,
+                'member_count': member_count,
+                'created_at': org.created_at.isoformat()
+            }]
+        })
+    return jsonify({'organizations': []})
+
+@app.route('/api/organizations', methods=['POST'])
+@auth_required
+def create_organization(user):
+    """Create a new organization"""
+    data = request.json or {}
+
+    name = data.get('name', '').strip()
+    if not name:
+        return jsonify({'error': 'Organization name is required'}), 400
+
+    # Generate slug
+    slug = create_slug(name)
+    base_slug = slug
+    counter = 1
+    while Organization.query.filter_by(slug=slug).first():
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+
+    try:
+        org = Organization(
+            name=name,
+            slug=slug,
+            domain=data.get('domain'),
+            plan=data.get('plan', 'free'),
+            settings=json.dumps(data.get('settings', {}))
+        )
+        db.session.add(org)
+        db.session.flush()  # Get org.id
+
+        # Update user to be owner of new org
+        user.organization_id = org.id
+        user.role = 'owner'
+        db.session.commit()
+
+        log_activity('org_created', f'Organization created: {org.name}', f'{user.email} created organization {org.name}')
+
+        return jsonify({
+            'id': org.id,
+            'name': org.name,
+            'slug': org.slug,
+            'plan': org.plan,
+            'message': 'Organization created successfully'
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Failed to create organization: {str(e)}'}), 500
+
+@app.route('/api/organizations/<int:org_id>', methods=['GET'])
+@auth_required
+def get_organization(user, org_id):
+    """Get organization details"""
+    org = Organization.query.get_or_404(org_id)
+
+    # Check user has access
+    if user.organization_id != org.id:
+        return jsonify({'error': 'Access denied'}), 403
+
+    members = User.query.filter_by(organization_id=org.id, is_active=True).all()
+
+    return jsonify({
+        'id': org.id,
+        'name': org.name,
+        'slug': org.slug,
+        'domain': org.domain,
+        'plan': org.plan,
+        'settings': json.loads(org.settings) if org.settings else {},
+        'salesforce_connected': bool(org.salesforce_instance_url),
+        'created_at': org.created_at.isoformat(),
+        'updated_at': org.updated_at.isoformat(),
+        'members': [{
+            'id': m.id,
+            'email': m.email,
+            'name': m.name,
+            'role': m.role,
+            'avatar_url': m.avatar_url,
+            'last_login': m.last_login.isoformat() if m.last_login else None
+        } for m in members]
+    })
+
+@app.route('/api/organizations/<int:org_id>', methods=['PUT'])
+@auth_required
+def update_organization(user, org_id):
+    """Update organization details"""
+    org = Organization.query.get_or_404(org_id)
+
+    # Check user has permission (owner or admin)
+    if user.organization_id != org.id or user.role not in ['owner', 'admin']:
+        return jsonify({'error': 'Permission denied'}), 403
+
+    data = request.json or {}
+
+    if 'name' in data:
+        org.name = data['name'].strip()
+    if 'domain' in data:
+        org.domain = data['domain']
+    if 'settings' in data:
+        org.settings = json.dumps(data['settings'])
+
+    # Only owner can change plan (normally done via billing)
+    if 'plan' in data and user.role == 'owner':
+        org.plan = data['plan']
+
+    try:
+        db.session.commit()
+        log_activity('org_updated', f'Organization updated: {org.name}', f'{user.email} updated organization settings')
+        return jsonify({'message': 'Organization updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Update failed: {str(e)}'}), 500
+
+@app.route('/api/organizations/<int:org_id>', methods=['DELETE'])
+@auth_required
+def delete_organization(user, org_id):
+    """Delete organization (owner only)"""
+    org = Organization.query.get_or_404(org_id)
+
+    # Only owner can delete
+    if user.organization_id != org.id or user.role != 'owner':
+        return jsonify({'error': 'Only organization owner can delete'}), 403
+
+    try:
+        org_name = org.name
+        # Remove all users from org (don't delete users, just unassign)
+        User.query.filter_by(organization_id=org.id).update({'organization_id': None, 'role': 'member'})
+        db.session.delete(org)
+        db.session.commit()
+
+        log_activity('org_deleted', f'Organization deleted: {org_name}', f'{user.email} deleted organization')
+        return jsonify({'message': 'Organization deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Delete failed: {str(e)}'}), 500
+
+@app.route('/api/organizations/<int:org_id>/members', methods=['GET'])
+@auth_required
+def list_organization_members(user, org_id):
+    """List organization members"""
+    org = Organization.query.get_or_404(org_id)
+
+    if user.organization_id != org.id:
+        return jsonify({'error': 'Access denied'}), 403
+
+    members = User.query.filter_by(organization_id=org.id).all()
+
+    return jsonify({
+        'members': [{
+            'id': m.id,
+            'email': m.email,
+            'name': m.name,
+            'role': m.role,
+            'avatar_url': m.avatar_url,
+            'is_active': m.is_active,
+            'last_login': m.last_login.isoformat() if m.last_login else None,
+            'created_at': m.created_at.isoformat()
+        } for m in members]
+    })
+
+@app.route('/api/organizations/<int:org_id>/members', methods=['POST'])
+@auth_required
+def invite_member(user, org_id):
+    """Invite a new member to the organization"""
+    org = Organization.query.get_or_404(org_id)
+
+    # Check permission (owner or admin can invite)
+    if user.organization_id != org.id or user.role not in ['owner', 'admin']:
+        return jsonify({'error': 'Permission denied'}), 403
+
+    data = request.json or {}
+    email = data.get('email', '').strip().lower()
+    role = data.get('role', 'member')
+
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+
+    # Validate role
+    if role not in ['admin', 'member', 'viewer']:
+        return jsonify({'error': 'Invalid role'}), 400
+
+    # Check if user exists
+    existing_user = User.query.filter_by(email=email).first()
+
+    if existing_user:
+        if existing_user.organization_id == org.id:
+            return jsonify({'error': 'User is already a member'}), 400
+        if existing_user.organization_id:
+            return jsonify({'error': 'User belongs to another organization'}), 400
+
+        # Add existing user to org
+        existing_user.organization_id = org.id
+        existing_user.role = role
+        db.session.commit()
+
+        log_activity('member_added', f'Member added: {email}', f'{user.email} added {email} to {org.name}')
+        return jsonify({'message': f'User {email} added to organization', 'user_id': existing_user.id})
+
+    # Create invitation (for now, create inactive user)
+    # In production, send email invitation
+    try:
+        new_user = User(
+            email=email,
+            organization_id=org.id,
+            role=role,
+            is_active=False,  # Will be activated when they accept invite
+            is_verified=False
+        )
+        db.session.add(new_user)
+        db.session.commit()
+
+        log_activity('member_invited', f'Member invited: {email}', f'{user.email} invited {email} to {org.name}')
+        return jsonify({
+            'message': f'Invitation sent to {email}',
+            'user_id': new_user.id,
+            'note': 'User needs to complete registration'
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Invitation failed: {str(e)}'}), 500
+
+@app.route('/api/organizations/<int:org_id>/members/<int:member_id>', methods=['PUT'])
+@auth_required
+def update_member(user, org_id, member_id):
+    """Update member role"""
+    org = Organization.query.get_or_404(org_id)
+
+    # Check permission
+    if user.organization_id != org.id or user.role not in ['owner', 'admin']:
+        return jsonify({'error': 'Permission denied'}), 403
+
+    member = User.query.get_or_404(member_id)
+    if member.organization_id != org.id:
+        return jsonify({'error': 'Member not found'}), 404
+
+    data = request.json or {}
+    new_role = data.get('role')
+
+    if new_role:
+        # Can't change owner role unless you're the owner
+        if member.role == 'owner' and user.role != 'owner':
+            return jsonify({'error': 'Cannot modify owner role'}), 403
+
+        # Can't promote to owner unless you're the owner
+        if new_role == 'owner' and user.role != 'owner':
+            return jsonify({'error': 'Only owner can transfer ownership'}), 403
+
+        # If transferring ownership, demote current owner
+        if new_role == 'owner':
+            user.role = 'admin'
+
+        member.role = new_role
+        db.session.commit()
+
+        log_activity('member_updated', f'Member role changed: {member.email}', f'{user.email} changed {member.email} role to {new_role}')
+        return jsonify({'message': 'Member updated successfully'})
+
+    return jsonify({'error': 'No changes specified'}), 400
+
+@app.route('/api/organizations/<int:org_id>/members/<int:member_id>', methods=['DELETE'])
+@auth_required
+def remove_member(user, org_id, member_id):
+    """Remove member from organization"""
+    org = Organization.query.get_or_404(org_id)
+
+    # Check permission
+    if user.organization_id != org.id or user.role not in ['owner', 'admin']:
+        return jsonify({'error': 'Permission denied'}), 403
+
+    member = User.query.get_or_404(member_id)
+    if member.organization_id != org.id:
+        return jsonify({'error': 'Member not found'}), 404
+
+    # Can't remove owner
+    if member.role == 'owner':
+        return jsonify({'error': 'Cannot remove organization owner'}), 403
+
+    # Can't remove yourself (use leave instead)
+    if member.id == user.id:
+        return jsonify({'error': 'Use leave endpoint to leave organization'}), 400
+
+    member.organization_id = None
+    member.role = 'member'
+    db.session.commit()
+
+    log_activity('member_removed', f'Member removed: {member.email}', f'{user.email} removed {member.email} from {org.name}')
+    return jsonify({'message': 'Member removed successfully'})
+
+@app.route('/api/organizations/current/leave', methods=['POST'])
+@auth_required
+def leave_organization(user):
+    """Leave current organization"""
+    if not user.organization_id:
+        return jsonify({'error': 'You are not in an organization'}), 400
+
+    if user.role == 'owner':
+        return jsonify({'error': 'Owner cannot leave. Transfer ownership or delete the organization.'}), 400
+
+    org_name = user.organization.name
+    user.organization_id = None
+    user.role = 'member'
+    db.session.commit()
+
+    log_activity('member_left', f'Member left: {user.email}', f'{user.email} left {org_name}')
+    return jsonify({'message': 'Successfully left organization'})
+
+# ============== Session APIs ==============
+
+@app.route('/api/sessions', methods=['GET'])
+@auth_required
+def list_sessions(user):
+    """List user's consultant sessions"""
+    status_filter = request.args.get('status')  # active, ended, archived
+    consultant = request.args.get('consultant')
+    limit = min(int(request.args.get('limit', 20)), 100)
+    offset = int(request.args.get('offset', 0))
+
+    query = ConsultantSession.query.filter_by(user_id=user.id)
+
+    if user.organization_id:
+        query = query.filter_by(organization_id=user.organization_id)
+
+    if status_filter:
+        query = query.filter_by(status=status_filter)
+
+    if consultant:
+        query = query.filter_by(consultant_id=consultant)
+
+    total = query.count()
+    sessions = query.order_by(ConsultantSession.last_message_at.desc())\
+                    .offset(offset).limit(limit).all()
+
+    return jsonify({
+        'sessions': [{
+            'id': s.id,
+            'session_id': s.session_id,
+            'consultant_id': s.consultant_id,
+            'consultant_name': s.consultant_name,
+            'language': s.language,
+            'title': s.title,
+            'topic': s.topic,
+            'status': s.status,
+            'message_count': s.message_count,
+            'tokens_used': s.tokens_used,
+            'duration_seconds': s.duration_seconds,
+            'started_at': s.started_at.isoformat() if s.started_at else None,
+            'ended_at': s.ended_at.isoformat() if s.ended_at else None,
+            'last_message_at': s.last_message_at.isoformat() if s.last_message_at else None
+        } for s in sessions],
+        'total': total,
+        'limit': limit,
+        'offset': offset
+    })
+
+@app.route('/api/sessions', methods=['POST'])
+@auth_required
+def create_session(user):
+    """Start a new consultant session"""
+    data = request.json or {}
+
+    consultant_id = data.get('consultant_id')
+    if not consultant_id:
+        return jsonify({'error': 'consultant_id is required'}), 400
+
+    import uuid
+    session = ConsultantSession(
+        session_id=str(uuid.uuid4()),
+        user_id=user.id,
+        organization_id=user.organization_id,
+        consultant_id=consultant_id,
+        consultant_name=data.get('consultant_name', consultant_id.title()),
+        language=data.get('language', 'en'),
+        title=data.get('title'),
+        topic=data.get('topic'),
+        status='active'
+    )
+
+    db.session.add(session)
+    db.session.commit()
+
+    # Update daily stats
+    update_daily_stats(user.organization_id, sessions_delta=1)
+
+    return jsonify({
+        'id': session.id,
+        'session_id': session.session_id,
+        'consultant_id': session.consultant_id,
+        'status': session.status,
+        'started_at': session.started_at.isoformat()
+    }), 201
+
+@app.route('/api/sessions/<session_id>', methods=['GET'])
+@auth_required
+def get_session(user, session_id):
+    """Get session details with messages"""
+    session = ConsultantSession.query.filter_by(session_id=session_id).first()
+
+    if not session:
+        return jsonify({'error': 'Session not found'}), 404
+
+    if session.user_id != user.id:
+        return jsonify({'error': 'Access denied'}), 403
+
+    messages = SessionMessage.query.filter_by(session_id=session.id)\
+                                   .order_by(SessionMessage.created_at).all()
+
+    return jsonify({
+        'id': session.id,
+        'session_id': session.session_id,
+        'consultant_id': session.consultant_id,
+        'consultant_name': session.consultant_name,
+        'language': session.language,
+        'title': session.title,
+        'topic': session.topic,
+        'status': session.status,
+        'message_count': session.message_count,
+        'tokens_used': session.tokens_used,
+        'duration_seconds': session.duration_seconds,
+        'started_at': session.started_at.isoformat() if session.started_at else None,
+        'ended_at': session.ended_at.isoformat() if session.ended_at else None,
+        'messages': [{
+            'id': m.id,
+            'role': m.role,
+            'content': m.content,
+            'tokens': m.tokens,
+            'sources_used': json.loads(m.sources_used) if m.sources_used else None,
+            'confidence_score': m.confidence_score,
+            'created_at': m.created_at.isoformat()
+        } for m in messages]
+    })
+
+@app.route('/api/sessions/<session_id>/messages', methods=['POST'])
+@auth_required
+def add_message(user, session_id):
+    """Add a message to a session"""
+    session = ConsultantSession.query.filter_by(session_id=session_id).first()
+
+    if not session:
+        return jsonify({'error': 'Session not found'}), 404
+
+    if session.user_id != user.id:
+        return jsonify({'error': 'Access denied'}), 403
+
+    data = request.json or {}
+    role = data.get('role', 'user')
+    content = data.get('content', '').strip()
+
+    if not content:
+        return jsonify({'error': 'Content is required'}), 400
+
+    tokens = data.get('tokens', len(content) // 4)  # Rough estimate if not provided
+
+    message = SessionMessage(
+        session_id=session.id,
+        role=role,
+        content=content,
+        tokens=tokens,
+        sources_used=json.dumps(data.get('sources_used')) if data.get('sources_used') else None,
+        confidence_score=data.get('confidence_score')
+    )
+
+    db.session.add(message)
+
+    # Update session stats
+    session.message_count += 1
+    session.tokens_used += tokens
+    session.last_message_at = datetime.utcnow()
+
+    # Auto-generate title from first user message
+    if not session.title and role == 'user':
+        session.title = content[:100] + ('...' if len(content) > 100 else '')
+
+    db.session.commit()
+
+    # Update daily stats
+    update_daily_stats(user.organization_id, messages_delta=1, tokens_delta=tokens)
+
+    return jsonify({
+        'id': message.id,
+        'role': message.role,
+        'content': message.content,
+        'created_at': message.created_at.isoformat()
+    }), 201
+
+@app.route('/api/sessions/<session_id>/end', methods=['POST'])
+@auth_required
+def end_session(user, session_id):
+    """End an active session"""
+    session = ConsultantSession.query.filter_by(session_id=session_id).first()
+
+    if not session:
+        return jsonify({'error': 'Session not found'}), 404
+
+    if session.user_id != user.id:
+        return jsonify({'error': 'Access denied'}), 403
+
+    if session.status != 'active':
+        return jsonify({'error': 'Session is not active'}), 400
+
+    session.status = 'ended'
+    session.ended_at = datetime.utcnow()
+    session.duration_seconds = int((session.ended_at - session.started_at).total_seconds())
+
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Session ended',
+        'duration_seconds': session.duration_seconds
+    })
+
+@app.route('/api/sessions/<session_id>', methods=['DELETE'])
+@auth_required
+def delete_session(user, session_id):
+    """Delete/archive a session"""
+    session = ConsultantSession.query.filter_by(session_id=session_id).first()
+
+    if not session:
+        return jsonify({'error': 'Session not found'}), 404
+
+    if session.user_id != user.id:
+        return jsonify({'error': 'Access denied'}), 403
+
+    # Soft delete by archiving
+    session.status = 'archived'
+    db.session.commit()
+
+    return jsonify({'message': 'Session archived'})
+
+# ============== Usage Statistics APIs ==============
+
+def update_daily_stats(org_id, sessions_delta=0, messages_delta=0, tokens_delta=0):
+    """Update or create daily usage stats"""
+    if not org_id:
+        return
+
+    from datetime import date
+    today = date.today()
+
+    stats = UsageStats.query.filter_by(organization_id=org_id, date=today).first()
+
+    if not stats:
+        stats = UsageStats(
+            organization_id=org_id,
+            date=today,
+            sessions_count=0,
+            messages_count=0,
+            tokens_used=0
+        )
+        db.session.add(stats)
+
+    stats.sessions_count += sessions_delta
+    stats.messages_count += messages_delta
+    stats.tokens_used += tokens_delta
+
+    db.session.commit()
+
+@app.route('/api/stats/usage', methods=['GET'])
+@auth_required
+def get_usage_stats(user):
+    """Get usage statistics for the organization"""
+    if not user.organization_id:
+        return jsonify({'error': 'Organization required'}), 403
+
+    from datetime import date, timedelta
+
+    # Get date range from query params
+    days = int(request.args.get('days', 30))
+    end_date = date.today()
+    start_date = end_date - timedelta(days=days)
+
+    stats = UsageStats.query.filter(
+        UsageStats.organization_id == user.organization_id,
+        UsageStats.date >= start_date,
+        UsageStats.date <= end_date
+    ).order_by(UsageStats.date).all()
+
+    # Calculate totals
+    total_sessions = sum(s.sessions_count for s in stats)
+    total_messages = sum(s.messages_count for s in stats)
+    total_tokens = sum(s.tokens_used for s in stats)
+
+    # Get active sessions count
+    active_sessions = ConsultantSession.query.filter_by(
+        organization_id=user.organization_id,
+        status='active'
+    ).count()
+
+    # Get unique users this period
+    unique_users = db.session.query(db.func.count(db.distinct(ConsultantSession.user_id)))\
+        .filter(
+            ConsultantSession.organization_id == user.organization_id,
+            ConsultantSession.started_at >= datetime.combine(start_date, datetime.min.time())
+        ).scalar() or 0
+
+    return jsonify({
+        'period': {
+            'start': start_date.isoformat(),
+            'end': end_date.isoformat(),
+            'days': days
+        },
+        'totals': {
+            'sessions': total_sessions,
+            'messages': total_messages,
+            'tokens': total_tokens,
+            'unique_users': unique_users,
+            'active_sessions': active_sessions
+        },
+        'daily': [{
+            'date': s.date.isoformat(),
+            'sessions': s.sessions_count,
+            'messages': s.messages_count,
+            'tokens': s.tokens_used
+        } for s in stats]
+    })
+
+@app.route('/api/stats/consultants', methods=['GET'])
+@auth_required
+def get_consultant_stats(user):
+    """Get usage breakdown by consultant"""
+    if not user.organization_id:
+        return jsonify({'error': 'Organization required'}), 403
+
+    from datetime import date, timedelta
+    days = int(request.args.get('days', 30))
+    start_date = date.today() - timedelta(days=days)
+
+    # Query sessions grouped by consultant
+    results = db.session.query(
+        ConsultantSession.consultant_id,
+        ConsultantSession.consultant_name,
+        db.func.count(ConsultantSession.id).label('session_count'),
+        db.func.sum(ConsultantSession.message_count).label('message_count'),
+        db.func.sum(ConsultantSession.tokens_used).label('tokens_used')
+    ).filter(
+        ConsultantSession.organization_id == user.organization_id,
+        ConsultantSession.started_at >= datetime.combine(start_date, datetime.min.time())
+    ).group_by(
+        ConsultantSession.consultant_id,
+        ConsultantSession.consultant_name
+    ).all()
+
+    return jsonify({
+        'consultants': [{
+            'consultant_id': r.consultant_id,
+            'consultant_name': r.consultant_name,
+            'sessions': r.session_count,
+            'messages': r.message_count or 0,
+            'tokens': r.tokens_used or 0
+        } for r in results]
+    })
+
+@app.route('/api/stats/topics', methods=['GET'])
+@auth_required
+def get_topic_stats(user):
+    """Get usage breakdown by topic"""
+    if not user.organization_id:
+        return jsonify({'error': 'Organization required'}), 403
+
+    from datetime import date, timedelta
+    days = int(request.args.get('days', 30))
+    start_date = date.today() - timedelta(days=days)
+
+    results = db.session.query(
+        ConsultantSession.topic,
+        db.func.count(ConsultantSession.id).label('session_count'),
+        db.func.sum(ConsultantSession.message_count).label('message_count')
+    ).filter(
+        ConsultantSession.organization_id == user.organization_id,
+        ConsultantSession.started_at >= datetime.combine(start_date, datetime.min.time()),
+        ConsultantSession.topic.isnot(None)
+    ).group_by(
+        ConsultantSession.topic
+    ).all()
+
+    return jsonify({
+        'topics': [{
+            'topic': r.topic,
+            'sessions': r.session_count,
+            'messages': r.message_count or 0
+        } for r in results]
+    })
 
 # ============== Secrets Vault Routes ==============
 
@@ -1148,6 +2525,30 @@ except ImportError as e:
         print("RAG API (Demo) blueprint registered")
     except ImportError as e2:
         print(f"RAG API not available: {e2}")
+
+# Salesforce RAG API (Salesforce Consultant Assistant)
+try:
+    from salesforce_rag_api import salesforce_rag_bp
+    app.register_blueprint(salesforce_rag_bp)
+    print("Salesforce RAG API blueprint registered")
+except ImportError as e:
+    print(f"Salesforce RAG API not available: {e}")
+
+# Salesforce MCP API (Direct Salesforce operations)
+try:
+    from salesforce_mcp_api import salesforce_mcp_bp
+    app.register_blueprint(salesforce_mcp_bp)
+    print("Salesforce MCP API blueprint registered")
+except ImportError as e:
+    print(f"Salesforce MCP API not available: {e}")
+
+# Governance API (Policies, Approvals, Audit, Knowledge, Patterns)
+try:
+    from governance_api import governance_bp
+    app.register_blueprint(governance_bp)
+    print("Governance API blueprint registered")
+except ImportError as e:
+    print(f"Governance API not available: {e}")
 
 # ============== Main ==============
 
